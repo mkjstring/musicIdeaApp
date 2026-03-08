@@ -1,0 +1,132 @@
+.home-page {
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+}
+
+.home-header {
+  background: #16213e;
+  padding: 16px 24px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  border-bottom: 1px solid #2d3748;
+}
+
+.home-header h1 {
+  color: #e2e8f0;
+  font-size: 24px;
+  margin: 0;
+}
+
+.header-actions {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+}
+
+.user-email {
+  color: #718096;
+  font-size: 14px;
+}
+
+.sign-out-button {
+  background: transparent;
+  border: 1px solid #4a5568;
+  border-radius: 6px;
+  color: #a0aec0;
+  cursor: pointer;
+  font-size: 14px;
+  padding: 8px 16px;
+  transition: border-color 0.2s, color 0.2s;
+}
+
+.sign-out-button:hover {
+  border-color: #718096;
+  color: #e2e8f0;
+}
+
+.home-main {
+  flex: 1;
+  padding: 24px;
+  max-width: 1200px;
+  margin: 0 auto;
+  width: 100%;
+}
+
+.error-banner {
+  background: rgba(252, 129, 129, 0.1);
+  border: 1px solid #fc8181;
+  border-radius: 8px;
+  color: #fc8181;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 24px;
+  padding: 12px 16px;
+}
+
+.error-banner button {
+  background: none;
+  border: none;
+  color: #fc8181;
+  cursor: pointer;
+  font-size: 20px;
+  line-height: 1;
+  padding: 0;
+}
+
+.upload-section {
+  margin-bottom: 32px;
+}
+
+.form-section {
+  margin-bottom: 32px;
+}
+
+.ideas-section h2 {
+  color: #e2e8f0;
+  font-size: 20px;
+  margin: 0 0 20px;
+}
+
+.loading {
+  color: #718096;
+  text-align: center;
+  padding: 40px;
+}
+
+.empty-state {
+  background: #16213e;
+  border-radius: 12px;
+  padding: 60px 20px;
+  text-align: center;
+}
+
+.empty-state p {
+  color: #718096;
+  font-size: 16px;
+  margin: 0;
+}
+
+.ideas-grid {
+  display: grid;
+  gap: 20px;
+  grid-template-columns: repeat(auto-fill, minmax(350px, 1fr));
+}
+
+@media (max-width: 600px) {
+  .home-header {
+    flex-direction: column;
+    gap: 12px;
+    text-align: center;
+  }
+
+  .home-main {
+    padding: 16px;
+  }
+
+  .ideas-grid {
+    grid-template-columns: 1fr;
+  }
+}

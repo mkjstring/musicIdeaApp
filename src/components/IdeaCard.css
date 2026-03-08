@@ -1,0 +1,95 @@
+.idea-card {
+  background: #16213e;
+  border-radius: 16px;
+  padding: 20px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.idea-card-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 12px;
+}
+
+.idea-title {
+  color: #e2e8f0;
+  font-size: 18px;
+  font-weight: 600;
+  margin: 0;
+  flex: 1;
+}
+
+.idea-actions {
+  display: flex;
+  gap: 8px;
+}
+
+.action-button {
+  background: transparent;
+  border: none;
+  color: #718096;
+  cursor: pointer;
+  padding: 4px;
+  border-radius: 6px;
+  transition: color 0.2s, background 0.2s;
+}
+
+.action-button:hover {
+  background: rgba(255, 255, 255, 0.1);
+  color: #e2e8f0;
+}
+
+.action-button.delete:hover,
+.action-button.delete.confirm {
+  color: #fc8181;
+}
+
+.action-button.delete.confirm {
+  background: rgba(252, 129, 129, 0.2);
+}
+
+.idea-description {
+  color: #a0aec0;
+  font-size: 14px;
+  line-height: 1.5;
+  margin: 0;
+}
+
+.idea-meta {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.meta-tag {
+  background: rgba(102, 126, 234, 0.2);
+  color: #667eea;
+  font-size: 12px;
+  font-weight: 500;
+  padding: 4px 8px;
+  border-radius: 4px;
+}
+
+.meta-date {
+  color: #718096;
+  font-size: 12px;
+  margin-left: auto;
+}
+
+.idea-tags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+.tag {
+  background: #2d3748;
+  color: #cbd5e0;
+  font-size: 12px;
+  padding: 4px 10px;
+  border-radius: 12px;
+}
