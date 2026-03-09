@@ -34,6 +34,7 @@
   padding: 8px 12px;
   cursor: pointer;
   outline: none;
+  text-align: center;
   transition: border-color 0.2s;
 }
 
@@ -118,6 +119,12 @@
 
 /* Chord mode: fifth */
 .note-dot-fifth { fill: #0f766e; stroke: #134e4a; stroke-width: 1.5; }
+
+/* Chord mode: seventh */
+.note-dot-seventh { fill: #7c3aed; stroke: #5b21b6; stroke-width: 1.5; }
+
+/* Chord mode: ninth */
+.note-dot-ninth { fill: #065f46; stroke: #064e3b; stroke-width: 1.5; }
 
 /* ── Legend ── */
 .fretboard-legend {

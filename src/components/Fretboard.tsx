@@ -31,6 +31,11 @@ function noteToSemitone(note: string): number {
   return idx
 }
 
+const PENTATONIC_INTERVALS: Record<'major' | 'minor', number[]> = {
+  major: [0, 2, 4, 7, 9],
+  minor: [0, 3, 5, 7, 10],
+}
+
 // Returns [rootSemitone, thirdSemitone, fifthSemitone]
 function triadTones(rootNote: string, quality: string): [number, number, number] {
   const root = noteToSemitone(rootNote)
@@ -66,12 +71,18 @@ export function Fretboard({ tonicSemitone, scaleSemitones, chords, useFlats, mod
     ? triadTones(chord.note, chord.quality)
     : [null, null, null]
 
-  const activeSemitones = selectedDegree === 'scale' || !chord
-    ? scaleSemitones
-    : new Set([rootSem!, thirdSem!, fifthSem!])
+  const pentatonicSemitones = new Set(
+    PENTATONIC_INTERVALS[mode].map((i: number) => (tonicSemitone + i) % 12)
+  )
+
+  const activeSemitones = selectedDegree === 'pentatonic'
+    ? pentatonicSemitones
+    : selectedDegree === 'scale' || !chord
+      ? scaleSemitones
+      : new Set([rootSem!, thirdSem!, fifthSem!])
 
   function dotClass(semitone: number): string {
-    if (selectedDegree === 'scale') {
+    if (selectedDegree === 'scale' || selectedDegree === 'pentatonic') {
       return semitone === tonicSemitone
         ? `note-dot note-dot-tonic note-dot-tonic-${mode}`
         : 'note-dot note-dot-scale'
@@ -91,6 +102,7 @@ export function Fretboard({ tonicSemitone, scaleSemitones, chords, useFlats, mod
           onChange={e => onDegreeChange(e.target.value)}
         >
           <option value="scale">Scale — all diatonic notes</option>
+          <option value="pentatonic">Pentatonic — {mode} pentatonic notes</option>
           {chords.map(c => (
             <option key={c.numeral} value={c.numeral}>
               {c.numeral} — {c.note} ({c.quality})
@@ -99,7 +111,7 @@ export function Fretboard({ tonicSemitone, scaleSemitones, chords, useFlats, mod
         </select>
       </div>
 
-      <div className={`fretboard-legend${!chord ? ' fretboard-legend--hidden' : ''}`}>
+      <div className={`fretboard-legend${selectedDegree === 'scale' || selectedDegree === 'pentatonic' ? ' fretboard-legend--hidden' : ''}`}>
         <span className="legend-item legend-root">
           <span className="legend-swatch" /> Root
         </span>

@@ -360,6 +360,47 @@
   color: #e9c8ff;
 }
 
+/* ── Tab bar ── */
+.lab-tabs-wrapper {
+  width: 100%;
+}
+
+.lab-tab-bar {
+  display: flex;
+  gap: 4px;
+  border-bottom: 1px solid #2d3748;
+  margin-bottom: 0;
+}
+
+.lab-tab {
+  background: transparent;
+  border: none;
+  border-bottom: 2px solid transparent;
+  color: #718096;
+  cursor: pointer;
+  font-size: 14px;
+  font-weight: 500;
+  font-family: 'Inter', system-ui, sans-serif;
+  padding: 10px 20px;
+  margin-bottom: -1px;
+  transition: color 0.2s, border-color 0.2s;
+}
+
+.lab-tab:hover {
+  color: #a0aec0;
+}
+
+.lab-tab.active {
+  color: #667eea;
+  border-bottom-color: #667eea;
+}
+
+.cof-info-panel--minor ~ * .lab-tab.active,
+.lab-tab.active--minor {
+  color: #9f3fbf;
+  border-bottom-color: #9f3fbf;
+}
+
 /* ── Responsive ── */
 @media (min-width: 800px) {
   .cof-top-row {

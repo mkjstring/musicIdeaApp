@@ -1,5 +1,6 @@
 import { useState } from 'react'
 import { Fretboard } from './Fretboard'
+import { ChordsPanel } from './ChordsPanel'
 import './CircleOfFifths.css'
 
 const CX = 250, CY = 250
@@ -132,6 +133,7 @@ export function CircleOfFifths() {
   const [selectedIndex, setSelectedIndex] = useState(0)
   const [selectedMode, setSelectedMode] = useState<Mode>('major')
   const [selectedDegree, setSelectedDegree] = useState('scale')
+  const [activeTab, setActiveTab] = useState<'fretboard' | 'chords'>('fretboard')
 
   function rotate(index: number) {
     const currentMod = ((rotation % 360) + 360) % 360
@@ -373,15 +375,43 @@ export function CircleOfFifths() {
       </div>
       </div>{/* end cof-top-row */}
 
-      <Fretboard
-        tonicSemitone={tonicSemitone}
-        scaleSemitones={scaleSemitones}
-        chords={chords}
-        useFlats={useFlats}
-        mode={selectedMode}
-        selectedDegree={selectedDegree}
-        onDegreeChange={setSelectedDegree}
-      />
+      <div className="lab-tabs-wrapper">
+        <div className="lab-tab-bar">
+          <button
+            className={`lab-tab${activeTab === 'fretboard' ? ' active' : ''}`}
+            onClick={() => setActiveTab('fretboard')}
+          >
+            Fretboard
+          </button>
+          <button
+            className={`lab-tab${activeTab === 'chords' ? ' active' : ''}`}
+            onClick={() => setActiveTab('chords')}
+          >
+            Chords
+          </button>
+        </div>
+        {activeTab === 'fretboard' && (
+          <Fretboard
+            tonicSemitone={tonicSemitone}
+            scaleSemitones={scaleSemitones}
+            chords={chords}
+            useFlats={useFlats}
+            mode={selectedMode}
+            selectedDegree={selectedDegree}
+            onDegreeChange={setSelectedDegree}
+          />
+        )}
+        {activeTab === 'chords' && (
+          <ChordsPanel
+            chords={chords}
+            scaleSemitones={scaleSemitones}
+            useFlats={useFlats}
+            mode={selectedMode}
+            selectedDegree={selectedDegree}
+            onDegreeChange={setSelectedDegree}
+          />
+        )}
+      </div>
     </div>
   )
 }
