@@ -113,6 +113,11 @@ export function IdeaForm({ initialTitle, initialData, availableTags, onSubmit, o
             min="20"
             max="300"
           />
+          {initialData?.estimated_bpm && (
+            <span className="estimated-bpm-hint">
+              est. {initialData.estimated_bpm - 5}–{initialData.estimated_bpm + 5} BPM
+            </span>
+          )}
         </div>
 
         <div className="form-group">

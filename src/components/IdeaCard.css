@@ -124,6 +124,34 @@
   border-radius: 4px;
 }
 
+.meta-tag-estimated {
+  background: rgba(217, 119, 6, 0.12);
+  color: #d97706;
+  border: 1px solid rgba(217, 119, 6, 0.3);
+}
+
+.detect-bpm-btn {
+  background: transparent;
+  border: 1px dashed #4a5568;
+  border-radius: 4px;
+  color: #718096;
+  cursor: pointer;
+  font-size: 12px;
+  font-weight: 500;
+  padding: 3px 8px;
+  transition: border-color 0.2s, color 0.2s;
+}
+
+.detect-bpm-btn:hover:not(:disabled) {
+  border-color: #d97706;
+  color: #d97706;
+}
+
+.detect-bpm-btn:disabled {
+  cursor: default;
+  opacity: 0.6;
+}
+
 .meta-user {
   color: #a5b4fc;
   font-size: 12px;

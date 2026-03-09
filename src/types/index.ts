@@ -6,6 +6,7 @@ export interface MusicIdea {
   description: string | null
   tags: string[]
   bpm: number | null
+  estimated_bpm: number | null
   key: string | null
   audio_path: string
   created_at: string
@@ -27,6 +28,7 @@ export interface UpdateMusicIdeaInput {
   description?: string
   tags?: string[]
   bpm?: number
+  estimated_bpm?: number | null
   key?: string
 }
 

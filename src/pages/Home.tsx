@@ -20,6 +20,7 @@ const SEED_IDEAS: MusicIdea[] = DEV_MOCK ? [
     description: 'Drop any audio file into the upload area to test the player',
     tags: ['funk', 'riff', 'guitar'],
     bpm: 98,
+    estimated_bpm: null,
     key: 'A minor',
     audio_path: '/sample.mp3',
     created_at: new Date().toISOString(),
@@ -253,6 +254,7 @@ export function Home() {
                   creatorUsername={profile?.username ?? undefined}
                   onEdit={setEditingIdea}
                   onDelete={handleDeleteIdea}
+                  onUpdate={updated => setIdeas(prev => prev.map(i => i.id === updated.id ? updated : i))}
                 />
               ))}
             </div>

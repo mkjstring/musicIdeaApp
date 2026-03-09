@@ -1,6 +1,6 @@
 # Music Idea App
 
-A React + TypeScript app for capturing and organizing music ideas — record audio snippets, tag them, add BPM/key metadata, and search/filter your collection.
+A React + TypeScript app for capturing and organizing music ideas — record audio snippets, tag them, add BPM/key metadata, search/filter your collection, and explore music theory via an interactive Guitar Theory Lab.
 
 ## Tech Stack
 
@@ -8,6 +8,7 @@ A React + TypeScript app for capturing and organizing music ideas — record aud
 - Supabase (auth, database, storage)
 - WaveSurfer.js (audio waveform playback)
 - React Router 7
+- music-tempo (client-side BPM detection)
 
 ## Local Development (Mock Mode)
 
@@ -51,6 +52,9 @@ CREATE POLICY "Users can insert own profile" ON profiles FOR INSERT WITH CHECK (
 
 -- Add user_email column to music_ideas (if not already present)
 ALTER TABLE music_ideas ADD COLUMN IF NOT EXISTS user_email TEXT;
+
+-- Add estimated BPM column (auto-detected, separate from user-provided BPM)
+ALTER TABLE music_ideas ADD COLUMN IF NOT EXISTS estimated_bpm integer;
 ```
 
 3. Enable Email OTP in Supabase: Dashboard → Authentication → Providers → Email → enable "Magic Link / OTP"
@@ -74,8 +78,16 @@ npm run dev
 ## Features
 
 - **Passwordless login** — enter email, receive a one-time code, no passwords stored
-- **Audio upload & playback** — waveform visualization via WaveSurfer.js
+- **Audio upload & playback** — waveform visualization via WaveSurfer.js, download button on every card
 - **Metadata** — BPM, musical key (note + accidental + scale), description
+- **BPM detection** — "~ BPM" button on each card runs client-side analysis via `music-tempo` and saves an estimated BPM range (e.g. `est. 115–125 BPM`) in amber, distinct from any user-provided BPM; visible as a read-only hint in the edit form once calculated
 - **Pill-style tag picker** — autocomplete from existing tags, keyboard-friendly
 - **Search & filter** — real-time text search + advanced filters (date range, BPM range, key, tags with AND/OR logic)
 - **User profiles** — set a display username separate from your email
+- **Guitar Theory Lab** (`/guitar-theory-lab`) — interactive music theory tools:
+  - Circle of fifths — click any key to rotate it to 12 o'clock with spring animation
+  - Major/minor mode — click the outer ring for major, inner ring for relative minor
+  - Diatonic highlighting — non-diatonic positions dimmed; diatonic arc indicator at outer rim
+  - Roman numeral scale degrees shown in the inner ring, relative to the selected tonic
+  - Info panel — scale notes, diatonic chord grid (clickable to filter fretboard), key signature badge, relative key link
+  - Fretboard — 6-string × 15-fret SVG diagram showing diatonic notes or triad tones (root/3rd/5th color-coded) based on the info panel selection

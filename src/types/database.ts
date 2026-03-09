@@ -10,6 +10,7 @@ export interface Database {
           description: string | null
           tags: string[]
           bpm: number | null
+          estimated_bpm: number | null
           key: string | null
           audio_path: string
           created_at: string
@@ -23,6 +24,7 @@ export interface Database {
           description?: string | null
           tags?: string[]
           bpm?: number | null
+          estimated_bpm?: number | null
           key?: string | null
           audio_path: string
           created_at?: string
@@ -36,6 +38,7 @@ export interface Database {
           description?: string | null
           tags?: string[]
           bpm?: number | null
+          estimated_bpm?: number | null
           key?: string | null
           audio_path?: string
           created_at?: string

@@ -1,7 +1,8 @@
 import { useState } from 'react'
+import MusicTempo from 'music-tempo'
 import type { MusicIdea } from '../types'
 import { AudioPlayer } from './AudioPlayer'
-import { getAudioUrl } from '../lib/supabase'
+import { getAudioUrl, supabase } from '../lib/supabase'
 import './IdeaCard.css'
 
 interface IdeaCardProps {
@@ -9,10 +10,12 @@ interface IdeaCardProps {
   creatorUsername?: string
   onEdit?: (idea: MusicIdea) => void
   onDelete?: (id: string) => void
+  onUpdate?: (updated: MusicIdea) => void
 }
 
-export function IdeaCard({ idea, creatorUsername, onEdit, onDelete }: IdeaCardProps) {
+export function IdeaCard({ idea, creatorUsername, onEdit, onDelete, onUpdate }: IdeaCardProps) {
   const [showDeleteDialog, setShowDeleteDialog] = useState(false)
+  const [detectingBpm, setDetectingBpm] = useState(false)
 
   const formatDateTime = (dateString: string) => {
     const d = new Date(dateString)
@@ -23,6 +26,24 @@ export function IdeaCard({ idea, creatorUsername, onEdit, onDelete }: IdeaCardPr
 
   const displayName = creatorUsername
     ?? (idea.user_email ? idea.user_email.split('@')[0] : null)
+
+  const handleDetectBpm = async () => {
+    setDetectingBpm(true)
+    try {
+      const url = getAudioUrl(idea.audio_path)
+      const response = await fetch(url)
+      const arrayBuffer = await response.arrayBuffer()
+      const audioCtx = new AudioContext()
+      const audioBuffer = await audioCtx.decodeAudioData(arrayBuffer)
+      const channelData = Array.from(audioBuffer.getChannelData(0))
+      const mt = new MusicTempo(channelData)
+      const estimated_bpm = Math.round(mt.tempo)
+      await supabase.from('music_ideas').update({ estimated_bpm }).eq('id', idea.id)
+      onUpdate?.({ ...idea, estimated_bpm })
+    } finally {
+      setDetectingBpm(false)
+    }
+  }
 
   const handleDownload = async () => {
     const url = getAudioUrl(idea.audio_path)
@@ -77,6 +98,12 @@ export function IdeaCard({ idea, creatorUsername, onEdit, onDelete }: IdeaCardPr
 
       <div className="idea-meta">
         {idea.bpm && <span className="meta-tag">{idea.bpm} BPM</span>}
+        {idea.estimated_bpm
+          ? <span className="meta-tag meta-tag-estimated">est. {idea.estimated_bpm - 5}–{idea.estimated_bpm + 5} BPM</span>
+          : <button className="detect-bpm-btn" onClick={handleDetectBpm} disabled={detectingBpm}>
+              {detectingBpm ? 'Detecting…' : '~ BPM'}
+            </button>
+        }
         {idea.key && <span className="meta-tag">{idea.key}</span>}
         {displayName && <span className="meta-user">@{displayName}</span>}
         <span className="meta-date">{formatDateTime(idea.created_at)}</span>
