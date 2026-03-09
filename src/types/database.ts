@@ -5,6 +5,7 @@ export interface Database {
         Row: {
           id: string
           user_id: string
+          user_email: string | null
           title: string
           description: string | null
           tags: string[]
@@ -17,6 +18,7 @@ export interface Database {
         Insert: {
           id?: string
           user_id: string
+          user_email?: string | null
           title: string
           description?: string | null
           tags?: string[]
@@ -29,6 +31,7 @@ export interface Database {
         Update: {
           id?: string
           user_id?: string
+          user_email?: string | null
           title?: string
           description?: string | null
           tags?: string[]
@@ -37,6 +40,24 @@ export interface Database {
           audio_path?: string
           created_at?: string
           updated_at?: string
+        }
+      }
+      profiles: {
+        Row: {
+          id: string
+          username: string | null
+          email: string
+          created_at: string
+        }
+        Insert: {
+          id: string
+          username?: string | null
+          email: string
+          created_at?: string
+        }
+        Update: {
+          username?: string | null
+          email?: string
         }
       }
     }

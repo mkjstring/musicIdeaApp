@@ -42,13 +42,63 @@
   color: #e2e8f0;
 }
 
-.action-button.delete:hover,
-.action-button.delete.confirm {
+.action-button.delete:hover {
   color: #fc8181;
 }
 
-.action-button.delete.confirm {
-  background: rgba(252, 129, 129, 0.2);
+.delete-dialog {
+  background: #1a1a2e;
+  border: 1px solid #fc8181;
+  border-radius: 10px;
+  padding: 14px 16px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.delete-dialog p {
+  color: #e2e8f0;
+  font-size: 14px;
+  margin: 0;
+}
+
+.delete-dialog-actions {
+  display: flex;
+  gap: 8px;
+  flex-shrink: 0;
+}
+
+.dialog-cancel {
+  background: transparent;
+  border: 1px solid #4a5568;
+  border-radius: 6px;
+  color: #a0aec0;
+  cursor: pointer;
+  font-size: 13px;
+  padding: 6px 14px;
+  transition: border-color 0.2s, color 0.2s;
+}
+
+.dialog-cancel:hover {
+  border-color: #718096;
+  color: #e2e8f0;
+}
+
+.dialog-confirm {
+  background: #fc8181;
+  border: none;
+  border-radius: 6px;
+  color: #1a1a2e;
+  cursor: pointer;
+  font-size: 13px;
+  font-weight: 600;
+  padding: 6px 14px;
+  transition: opacity 0.2s;
+}
+
+.dialog-confirm:hover {
+  opacity: 0.85;
 }
 
 .idea-description {
@@ -72,6 +122,12 @@
   font-weight: 500;
   padding: 4px 8px;
   border-radius: 4px;
+}
+
+.meta-user {
+  color: #a5b4fc;
+  font-size: 12px;
+  font-weight: 500;
 }
 
 .meta-date {

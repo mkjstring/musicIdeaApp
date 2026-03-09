@@ -64,6 +64,21 @@
   min-width: 120px;
 }
 
+.key-selects {
+  display: flex;
+  gap: 6px;
+}
+
+.key-selects select {
+  min-width: unset;
+  flex: 1;
+}
+
+.key-selects select:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+
 .form-group textarea {
   font-family: inherit;
   resize: vertical;

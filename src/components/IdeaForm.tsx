@@ -1,44 +1,69 @@
 import { useState, type FormEvent } from 'react'
 import type { CreateMusicIdeaInput, MusicIdea } from '../types'
+import { TagInput } from './TagInput'
 import './IdeaForm.css'
 
 interface IdeaFormProps {
   initialTitle?: string
   initialData?: MusicIdea
+  availableTags: string[]
   onSubmit: (data: CreateMusicIdeaInput) => void
   onCancel: () => void
   isEditing?: boolean
 }
 
-const MUSIC_KEYS = [
-  'C', 'C#', 'D', 'D#', 'E', 'F', 'F#', 'G', 'G#', 'A', 'A#', 'B',
-  'Cm', 'C#m', 'Dm', 'D#m', 'Em', 'Fm', 'F#m', 'Gm', 'G#m', 'Am', 'A#m', 'Bm'
+const NOTES = ['A', 'B', 'C', 'D', 'E', 'F', 'G']
+const ACCIDENTALS = [
+  { value: '', label: '—' },
+  { value: '♭', label: '♭' },
+  { value: '♯', label: '♯' },
 ]
+const SCALES = ['major', 'minor', 'other']
 
-export function IdeaForm({ initialTitle, initialData, onSubmit, onCancel, isEditing }: IdeaFormProps) {
+function parseKey(raw: string): { note: string; accidental: string; scale: string } {
+  if (!raw) return { note: '', accidental: '', scale: '' }
+  const old = raw.match(/^([A-G])([#b]?)([m]?)$/)
+  if (old) {
+    return {
+      note: old[1],
+      accidental: old[2] === '#' ? '♯' : old[2] === 'b' ? '♭' : '',
+      scale: old[3] === 'm' ? 'minor' : 'major',
+    }
+  }
+  const newer = raw.match(/^([A-G])([♯♭]?)(?:\s+(.+))?$/)
+  if (newer) {
+    return { note: newer[1], accidental: newer[2] || '', scale: newer[3] || '' }
+  }
+  return { note: '', accidental: '', scale: '' }
+}
+
+function composeKey(note: string, accidental: string, scale: string): string {
+  if (!note) return ''
+  return `${note}${accidental}${scale ? ' ' + scale : ''}`
+}
+
+export function IdeaForm({ initialTitle, initialData, availableTags, onSubmit, onCancel, isEditing }: IdeaFormProps) {
   const [title, setTitle] = useState(initialTitle || initialData?.title || '')
   const [description, setDescription] = useState(initialData?.description || '')
   const [bpm, setBpm] = useState(initialData?.bpm?.toString() || '')
-  const [key, setKey] = useState(initialData?.key || '')
-  const [tagsInput, setTagsInput] = useState(initialData?.tags?.join(', ') || '')
+  const parsedKey = parseKey(initialData?.key || '')
+  const [keyNote, setKeyNote] = useState(parsedKey.note)
+  const [keyAccidental, setKeyAccidental] = useState(parsedKey.accidental)
+  const [keyScale, setKeyScale] = useState(parsedKey.scale)
+  const [tags, setTags] = useState<string[]>(initialData?.tags ?? [])
   const [submitting, setSubmitting] = useState(false)
 
   const handleSubmit = async (e: FormEvent) => {
     e.preventDefault()
     setSubmitting(true)
 
-    const tags = tagsInput
-      .split(',')
-      .map(t => t.trim())
-      .filter(t => t.length > 0)
-
     const data: CreateMusicIdeaInput = {
       title: title.trim(),
       description: description.trim() || undefined,
       bpm: bpm ? parseInt(bpm, 10) : undefined,
-      key: key || undefined,
+      key: composeKey(keyNote, keyAccidental, keyScale) || undefined,
       tags,
-      audio_path: initialData?.audio_path || '', // Will be set by parent for new ideas
+      audio_path: initialData?.audio_path || '',
     }
 
     await onSubmit(data)
@@ -91,26 +116,27 @@ export function IdeaForm({ initialTitle, initialData, onSubmit, onCancel, isEdit
         </div>
 
         <div className="form-group">
-          <label htmlFor="key">Key</label>
-          <select id="key" value={key} onChange={e => setKey(e.target.value)}>
-            <option value="">Select...</option>
-            {MUSIC_KEYS.map(k => (
-              <option key={k} value={k}>{k}</option>
-            ))}
-          </select>
+          <label>Key</label>
+          <div className="key-selects">
+            <select value={keyNote} onChange={e => setKeyNote(e.target.value)} aria-label="Note">
+              <option value="">—</option>
+              {NOTES.map(n => <option key={n} value={n}>{n}</option>)}
+            </select>
+            <select value={keyAccidental} onChange={e => setKeyAccidental(e.target.value)} aria-label="Accidental" disabled={!keyNote}>
+              {ACCIDENTALS.map(a => <option key={a.value} value={a.value}>{a.label}</option>)}
+            </select>
+            <select value={keyScale} onChange={e => setKeyScale(e.target.value)} aria-label="Scale" disabled={!keyNote}>
+              <option value="">—</option>
+              {SCALES.map(s => <option key={s} value={s}>{s}</option>)}
+            </select>
+          </div>
         </div>
       </div>
 
       <div className="form-row">
         <div className="form-group flex-1">
-          <label htmlFor="tags">Tags</label>
-          <input
-            id="tags"
-            type="text"
-            value={tagsInput}
-            onChange={e => setTagsInput(e.target.value)}
-            placeholder="rock, guitar, verse (comma separated)"
-          />
+          <label>Tags</label>
+          <TagInput value={tags} onChange={setTags} suggestions={availableTags} />
         </div>
       </div>
 

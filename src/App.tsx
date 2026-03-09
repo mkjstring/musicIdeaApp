@@ -1,7 +1,9 @@
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom'
 import { AuthProvider, useAuth } from './contexts/AuthContext'
+import { ProfileProvider } from './contexts/ProfileContext'
 import { Home } from './pages/Home'
 import { Login } from './pages/Login'
+import { GuitarTheoryLab } from './pages/GuitarTheoryLab'
 
 function PrivateRoute({ children }: { children: React.ReactNode }) {
   const { user, loading } = useAuth()
@@ -42,6 +44,14 @@ function AppRoutes() {
           </PublicRoute>
         }
       />
+      <Route
+        path="/guitar-theory-lab"
+        element={
+          <PrivateRoute>
+            <GuitarTheoryLab />
+          </PrivateRoute>
+        }
+      />
     </Routes>
   )
 }
@@ -50,7 +60,9 @@ function App() {
   return (
     <BrowserRouter>
       <AuthProvider>
-        <AppRoutes />
+        <ProfileProvider>
+          <AppRoutes />
+        </ProfileProvider>
       </AuthProvider>
     </BrowserRouter>
   )

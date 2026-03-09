@@ -6,28 +6,34 @@ import './IdeaCard.css'
 
 interface IdeaCardProps {
   idea: MusicIdea
+  creatorUsername?: string
   onEdit?: (idea: MusicIdea) => void
   onDelete?: (id: string) => void
 }
 
-export function IdeaCard({ idea, onEdit, onDelete }: IdeaCardProps) {
-  const [showDeleteConfirm, setShowDeleteConfirm] = useState(false)
+export function IdeaCard({ idea, creatorUsername, onEdit, onDelete }: IdeaCardProps) {
+  const [showDeleteDialog, setShowDeleteDialog] = useState(false)
 
-  const handleDelete = () => {
-    if (showDeleteConfirm) {
-      onDelete?.(idea.id)
-    } else {
-      setShowDeleteConfirm(true)
-      setTimeout(() => setShowDeleteConfirm(false), 3000)
-    }
+  const formatDateTime = (dateString: string) => {
+    const d = new Date(dateString)
+    return d.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })
+      + ' · '
+      + d.toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit' })
   }
 
-  const formatDate = (dateString: string) => {
-    return new Date(dateString).toLocaleDateString('en-US', {
-      month: 'short',
-      day: 'numeric',
-      year: 'numeric',
-    })
+  const displayName = creatorUsername
+    ?? (idea.user_email ? idea.user_email.split('@')[0] : null)
+
+  const handleDownload = async () => {
+    const url = getAudioUrl(idea.audio_path)
+    const response = await fetch(url)
+    const blob = await response.blob()
+    const ext = blob.type.includes('mpeg') ? 'mp3' : blob.type.split('/')[1] || 'audio'
+    const a = document.createElement('a')
+    a.href = URL.createObjectURL(blob)
+    a.download = `${idea.title}.${ext}`
+    a.click()
+    URL.revokeObjectURL(a.href)
   }
 
   return (
@@ -35,6 +41,9 @@ export function IdeaCard({ idea, onEdit, onDelete }: IdeaCardProps) {
       <div className="idea-card-header">
         <h3 className="idea-title">{idea.title}</h3>
         <div className="idea-actions">
+          <button className="action-button" onClick={handleDownload} aria-label="Download">
+            <DownloadIcon />
+          </button>
           {onEdit && (
             <button className="action-button" onClick={() => onEdit(idea)} aria-label="Edit">
               <EditIcon />
@@ -42,15 +51,25 @@ export function IdeaCard({ idea, onEdit, onDelete }: IdeaCardProps) {
           )}
           {onDelete && (
             <button
-              className={`action-button delete ${showDeleteConfirm ? 'confirm' : ''}`}
-              onClick={handleDelete}
-              aria-label={showDeleteConfirm ? 'Confirm delete' : 'Delete'}
+              className="action-button delete"
+              onClick={() => setShowDeleteDialog(true)}
+              aria-label="Delete"
             >
               <DeleteIcon />
             </button>
           )}
         </div>
       </div>
+
+      {showDeleteDialog && (
+        <div className="delete-dialog">
+          <p>Delete this idea?</p>
+          <div className="delete-dialog-actions">
+            <button className="dialog-cancel" onClick={() => setShowDeleteDialog(false)}>Cancel</button>
+            <button className="dialog-confirm" onClick={() => { onDelete?.(idea.id); setShowDeleteDialog(false) }}>Delete</button>
+          </div>
+        </div>
+      )}
 
       {idea.description && (
         <p className="idea-description">{idea.description}</p>
@@ -59,7 +78,8 @@ export function IdeaCard({ idea, onEdit, onDelete }: IdeaCardProps) {
       <div className="idea-meta">
         {idea.bpm && <span className="meta-tag">{idea.bpm} BPM</span>}
         {idea.key && <span className="meta-tag">{idea.key}</span>}
-        <span className="meta-date">{formatDate(idea.created_at)}</span>
+        {displayName && <span className="meta-user">@{displayName}</span>}
+        <span className="meta-date">{formatDateTime(idea.created_at)}</span>
       </div>
 
       {idea.tags.length > 0 && (
@@ -72,6 +92,16 @@ export function IdeaCard({ idea, onEdit, onDelete }: IdeaCardProps) {
 
       <AudioPlayer url={getAudioUrl(idea.audio_path)} />
     </div>
+  )
+}
+
+function DownloadIcon() {
+  return (
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" width="18" height="18">
+      <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" />
+      <polyline points="7 10 12 15 17 10" />
+      <line x1="12" y1="15" x2="12" y2="3" />
+    </svg>
   )
 }
 

@@ -1,35 +1,25 @@
 import { useState, type FormEvent } from 'react'
-import { useNavigate } from 'react-router-dom'
 import { useAuth } from '../contexts/AuthContext'
 import './Login.css'
 
 export function Login() {
   const [email, setEmail] = useState('')
-  const [password, setPassword] = useState('')
-  const [isSignUp, setIsSignUp] = useState(false)
+  const [token, setToken] = useState('')
+  const [step, setStep] = useState<'email' | 'code'>('email')
   const [error, setError] = useState<string | null>(null)
   const [loading, setLoading] = useState(false)
-  const { signIn, signUp } = useAuth()
-  const navigate = useNavigate()
+  const { sendOtp, verifyOtp } = useAuth()
 
-  const handleSubmit = async (e: FormEvent) => {
+  const handleSendOtp = async (e: FormEvent) => {
     e.preventDefault()
     setError(null)
     setLoading(true)
-
     try {
-      const { error } = isSignUp
-        ? await signUp(email, password)
-        : await signIn(email, password)
-
+      const { error } = await sendOtp(email)
       if (error) {
         setError(error.message)
       } else {
-        if (isSignUp) {
-          setError('Check your email to confirm your account!')
-        } else {
-          navigate('/')
-        }
+        setStep('code')
       }
     } catch {
       setError('An unexpected error occurred')
@@ -38,67 +28,94 @@ export function Login() {
     }
   }
 
+  const handleVerifyOtp = async (e: FormEvent) => {
+    e.preventDefault()
+    setError(null)
+    setLoading(true)
+    try {
+      const { error } = await verifyOtp(email, token)
+      if (error) {
+        setError(error.message)
+      }
+      // On success, AuthContext updates user state → App router redirects to Home
+    } catch {
+      setError('An unexpected error occurred')
+    } finally {
+      setLoading(false)
+    }
+  }
+
+  const handleResend = async () => {
+    setError(null)
+    setToken('')
+    const { error } = await sendOtp(email)
+    if (error) setError(error.message)
+  }
+
   return (
     <div className="login-page">
       <div className="login-container">
         <div className="login-header">
-          <h1 className="login-title">🎸 Music Ideas</h1>
+          <h1 className="login-title">Music Ideas</h1>
           <p className="login-subtitle">
-            {isSignUp ? 'Create an account' : 'Sign in to your account'}
+            {step === 'email' ? 'Enter your email to get started' : `Code sent to ${email}`}
           </p>
         </div>
 
-        <form onSubmit={handleSubmit} className="login-form">
-          <div className="form-group">
-            <label htmlFor="email">Email</label>
-            <input
-              id="email"
-              type="email"
-              value={email}
-              onChange={e => setEmail(e.target.value)}
-              placeholder="you@example.com"
-              required
-            />
-          </div>
-
-          <div className="form-group">
-            <label htmlFor="password">Password</label>
-            <input
-              id="password"
-              type="password"
-              value={password}
-              onChange={e => setPassword(e.target.value)}
-              placeholder="••••••••"
-              required
-              minLength={6}
-            />
-          </div>
-
-          {error && (
-            <div className={`form-message ${error.includes('Check') ? 'success' : 'error'}`}>
-              {error}
+        {step === 'email' ? (
+          <form onSubmit={handleSendOtp} className="login-form">
+            <div className="form-group">
+              <label htmlFor="email">Email</label>
+              <input
+                id="email"
+                type="email"
+                value={email}
+                onChange={e => setEmail(e.target.value)}
+                placeholder="you@example.com"
+                required
+                autoFocus
+              />
             </div>
-          )}
 
-          <button type="submit" className="submit-button" disabled={loading}>
-            {loading ? 'Loading...' : isSignUp ? 'Sign Up' : 'Sign In'}
-          </button>
-        </form>
+            {error && <div className="form-message error">{error}</div>}
 
-        <div className="login-footer">
-          <button
-            type="button"
-            className="toggle-mode"
-            onClick={() => {
-              setIsSignUp(!isSignUp)
-              setError(null)
-            }}
-          >
-            {isSignUp
-              ? 'Already have an account? Sign in'
-              : "Don't have an account? Sign up"}
-          </button>
-        </div>
+            <button type="submit" className="submit-button" disabled={loading}>
+              {loading ? 'Sending...' : 'Send Code'}
+            </button>
+          </form>
+        ) : (
+          <form onSubmit={handleVerifyOtp} className="login-form">
+            <div className="form-group">
+              <label htmlFor="token">Verification Code</label>
+              <input
+                id="token"
+                type="text"
+                inputMode="numeric"
+                value={token}
+                onChange={e => setToken(e.target.value.replace(/\D/g, '').slice(0, 6))}
+                placeholder="123456"
+                required
+                autoFocus
+                className="code-input"
+              />
+            </div>
+
+            {error && <div className="form-message error">{error}</div>}
+
+            <button type="submit" className="submit-button" disabled={loading || token.length < 6}>
+              {loading ? 'Verifying...' : 'Verify Code'}
+            </button>
+
+            <div className="login-footer">
+              <button type="button" className="toggle-mode" onClick={() => setStep('email')}>
+                ← Change email
+              </button>
+              <button type="button" className="toggle-mode" onClick={handleResend}>
+                Resend code
+              </button>
+            </div>
+          </form>
+        )}
       </div>
     </div>
   )

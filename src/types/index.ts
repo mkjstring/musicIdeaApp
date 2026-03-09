@@ -1,6 +1,7 @@
 export interface MusicIdea {
   id: string
   user_id: string
+  user_email?: string
   title: string
   description: string | null
   tags: string[]
@@ -18,6 +19,7 @@ export interface CreateMusicIdeaInput {
   bpm?: number
   key?: string
   audio_path: string
+  user_email?: string
 }
 
 export interface UpdateMusicIdeaInput {
@@ -26,4 +28,24 @@ export interface UpdateMusicIdeaInput {
   tags?: string[]
   bpm?: number
   key?: string
+}
+
+export interface Profile {
+  id: string
+  username: string | null
+  email: string
+  created_at: string
+}
+
+export interface FilterState {
+  text: string
+  dateFrom: string
+  dateTo: string
+  keyNote: string
+  keyAccidental: string
+  keyScale: string
+  bpmMin: string
+  bpmMax: string
+  tags: string[]
+  tagLogic: 'AND' | 'OR'
 }

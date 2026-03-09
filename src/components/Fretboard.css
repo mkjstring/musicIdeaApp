@@ -1,0 +1,130 @@
+.fretboard-section {
+  width: 100%;
+  background: #12192e;
+  border-radius: 16px;
+  padding: 24px;
+  border: 1px solid #2d3748;
+}
+
+.fretboard-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  margin-bottom: 20px;
+  flex-wrap: wrap;
+}
+
+.fretboard-title {
+  color: #a0aec0;
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  margin: 0;
+}
+
+.degree-select {
+  background: #1a1a2e;
+  border: 1px solid #3a4a68;
+  border-radius: 8px;
+  color: #e2e8f0;
+  font-size: 14px;
+  font-family: 'Inter', system-ui, sans-serif;
+  padding: 8px 12px;
+  cursor: pointer;
+  outline: none;
+  transition: border-color 0.2s;
+}
+
+.degree-select:hover,
+.degree-select:focus {
+  border-color: #667eea;
+}
+
+/* Scrollable wrapper so fretboard never wraps on small screens */
+.fretboard-scroll-wrapper {
+  width: 100%;
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+}
+
+.fretboard-svg {
+  display: block;
+  min-width: 600px;
+  width: 100%;
+  height: auto;
+}
+
+/* ── SVG elements ── */
+
+.fret-number {
+  fill: #4a5568;
+  font-size: 9px;
+  font-family: 'Inter', system-ui, sans-serif;
+  pointer-events: none;
+  user-select: none;
+}
+
+.fret-inlay {
+  fill: #1e2d4a;
+}
+
+.fret-nut {
+  fill: #c8d5e8;
+}
+
+.fret-line {
+  stroke: #2d3a52;
+  stroke-width: 1.5;
+}
+
+.string-line {
+  stroke: #6b7fa0;
+}
+
+.string-label {
+  fill: #4a5568;
+  font-size: 11px;
+  font-weight: 600;
+  font-family: 'Inter', system-ui, sans-serif;
+  pointer-events: none;
+  user-select: none;
+}
+
+/* ── Note dots ── */
+
+.note-dot {
+  transition: opacity 0.15s;
+}
+
+/* Scale mode: tonic */
+.note-dot-tonic-major { fill: #667eea; }
+.note-dot-tonic-minor { fill: #9f3fbf; }
+
+/* Scale mode: other diatonic notes */
+.note-dot-scale {
+  fill: #1e3460;
+  stroke: #667eea;
+  stroke-width: 1.5;
+}
+
+/* Chord mode: root */
+.note-dot-root-major { fill: #667eea; }
+.note-dot-root-minor { fill: #9f3fbf; }
+
+/* Chord mode: 3rd and 5th */
+.note-dot-chord-tone {
+  fill: #2a3e6e;
+  stroke: #667eea;
+  stroke-width: 1.5;
+}
+
+.note-dot-label {
+  fill: #ffffff;
+  font-size: 7.5px;
+  font-weight: 700;
+  font-family: 'Inter', system-ui, sans-serif;
+  pointer-events: none;
+  user-select: none;
+}

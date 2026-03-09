@@ -19,15 +19,44 @@
   margin: 0;
 }
 
+.header-nav {
+  display: flex;
+  align-items: center;
+}
+
+.nav-link {
+  color: #667eea;
+  font-size: 14px;
+  font-weight: 500;
+  padding: 8px 14px;
+  border-radius: 6px;
+  text-decoration: none;
+  transition: background 0.2s, color 0.2s;
+}
+
+.nav-link:hover {
+  background: rgba(102, 126, 234, 0.12);
+  color: #a5b4fc;
+}
+
 .header-actions {
   display: flex;
   align-items: center;
   gap: 16px;
 }
 
-.user-email {
-  color: #718096;
+.user-display {
+  background: transparent;
+  border: none;
+  color: #a5b4fc;
+  cursor: pointer;
   font-size: 14px;
+  padding: 0;
+  transition: color 0.2s;
+}
+
+.user-display:hover {
+  color: #e2e8f0;
 }
 
 .sign-out-button {
@@ -84,10 +113,100 @@
   margin-bottom: 32px;
 }
 
-.ideas-section h2 {
+.ideas-section-header {
+  display: flex;
+  align-items: baseline;
+  gap: 12px;
+  margin-bottom: 12px;
+}
+
+.ideas-section-header h2 {
   color: #e2e8f0;
   font-size: 20px;
-  margin: 0 0 20px;
+  margin: 0;
+}
+
+.filter-count {
+  color: #718096;
+  font-size: 13px;
+}
+
+.ideas-section .search-bar {
+  margin-bottom: 20px;
+}
+
+.username-modal-backdrop {
+  align-items: center;
+  background: rgba(0, 0, 0, 0.6);
+  bottom: 0;
+  display: flex;
+  justify-content: center;
+  left: 0;
+  position: fixed;
+  right: 0;
+  top: 0;
+  z-index: 200;
+}
+
+.username-modal {
+  background: #16213e;
+  border: 1px solid #2d3748;
+  border-radius: 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  padding: 24px;
+  width: 340px;
+}
+
+.username-modal h3 {
+  color: #e2e8f0;
+  font-size: 18px;
+  margin: 0;
+}
+
+.username-modal input {
+  background: #1a1a2e;
+  border: 1px solid #2d3748;
+  border-radius: 8px;
+  color: #e2e8f0;
+  font-size: 14px;
+  padding: 10px 12px;
+  transition: border-color 0.2s;
+}
+
+.username-modal input:focus {
+  border-color: #667eea;
+  outline: none;
+}
+
+.username-modal-actions {
+  display: flex;
+  gap: 10px;
+  justify-content: flex-end;
+}
+
+.username-modal-actions button {
+  background: transparent;
+  border: 1px solid #4a5568;
+  border-radius: 8px;
+  color: #a0aec0;
+  cursor: pointer;
+  font-size: 14px;
+  padding: 8px 18px;
+  transition: border-color 0.2s, color 0.2s;
+}
+
+.username-modal-actions button:hover {
+  border-color: #718096;
+  color: #e2e8f0;
+}
+
+.username-modal-actions .save-btn {
+  background: linear-gradient(135deg, #667eea, #764ba2);
+  border-color: transparent;
+  color: white;
+  font-weight: 600;
 }
 
 .loading {

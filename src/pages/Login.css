@@ -110,9 +110,16 @@
   opacity: 0.6;
 }
 
-.login-footer {
-  margin-top: 24px;
+.code-input {
+  font-size: 24px !important;
+  letter-spacing: 0.4em;
   text-align: center;
+}
+
+.login-footer {
+  display: flex;
+  justify-content: space-between;
+  margin-top: 8px;
 }
 
 .toggle-mode {
