@@ -1,0 +1,281 @@
+.progression-lab {
+  padding: 24px;
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+}
+
+/* ── Controls row ── */
+.progression-controls {
+  display: flex;
+  align-items: flex-end;
+  gap: 20px;
+  flex-wrap: wrap;
+}
+
+.progression-control-group {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.progression-control-label {
+  color: #718096;
+  font-size: 10px;
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  font-family: 'Inter', system-ui, sans-serif;
+}
+
+.progression-bpm-input {
+  background: #1a1a2e;
+  border: 1px solid #3a4a68;
+  border-radius: 8px;
+  color: #e2e8f0;
+  font-size: 14px;
+  font-family: 'Inter', system-ui, sans-serif;
+  padding: 8px 10px;
+  width: 72px;
+  outline: none;
+  transition: border-color 0.2s;
+}
+
+.progression-bpm-input:focus {
+  border-color: #667eea;
+}
+
+/* hide number input spinners */
+.progression-bpm-input::-webkit-outer-spin-button,
+.progression-bpm-input::-webkit-inner-spin-button { -webkit-appearance: none; }
+.progression-bpm-input[type=number] { -moz-appearance: textfield; }
+
+.progression-timesig {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.progression-timesig-input {
+  background: #1a1a2e;
+  border: 1px solid #3a4a68;
+  border-radius: 8px;
+  color: #e2e8f0;
+  font-size: 14px;
+  font-family: 'Inter', system-ui, sans-serif;
+  padding: 8px 10px;
+  width: 52px;
+  outline: none;
+  text-align: center;
+  transition: border-color 0.2s;
+}
+
+.progression-timesig-input:focus {
+  border-color: #667eea;
+}
+
+.progression-timesig-input::-webkit-outer-spin-button,
+.progression-timesig-input::-webkit-inner-spin-button { -webkit-appearance: none; }
+.progression-timesig-input[type=number] { -moz-appearance: textfield; }
+
+.progression-timesig-sep {
+  color: #4a5568;
+  font-size: 18px;
+  font-weight: 300;
+  line-height: 1;
+  padding-bottom: 2px;
+}
+
+.progression-timesig-select,
+.progression-bars-select {
+  background: #1a1a2e;
+  border: 1px solid #3a4a68;
+  border-radius: 8px;
+  color: #e2e8f0;
+  font-size: 14px;
+  font-family: 'Inter', system-ui, sans-serif;
+  padding: 8px 10px;
+  outline: none;
+  cursor: pointer;
+  transition: border-color 0.2s;
+}
+
+.progression-timesig-select:focus,
+.progression-bars-select:focus,
+.progression-timesig-select:hover,
+.progression-bars-select:hover {
+  border-color: #667eea;
+}
+
+.progression-play-btn {
+  background: rgba(102, 126, 234, 0.15);
+  border: 1px solid rgba(102, 126, 234, 0.4);
+  border-radius: 8px;
+  color: #a5b4fc;
+  cursor: pointer;
+  font-size: 13px;
+  font-weight: 600;
+  font-family: 'Inter', system-ui, sans-serif;
+  padding: 9px 20px;
+  transition: background 0.2s, border-color 0.2s, color 0.2s;
+  letter-spacing: 0.02em;
+}
+
+.progression-play-btn:hover {
+  background: rgba(102, 126, 234, 0.28);
+  border-color: rgba(102, 126, 234, 0.7);
+  color: #c7d2fe;
+}
+
+.progression-play-btn--stop {
+  background: rgba(239, 68, 68, 0.12);
+  border-color: rgba(239, 68, 68, 0.35);
+  color: #fca5a5;
+}
+
+.progression-play-btn--stop:hover {
+  background: rgba(239, 68, 68, 0.22);
+  border-color: rgba(239, 68, 68, 0.6);
+  color: #fecaca;
+}
+
+/* ── Bar grid ── */
+.progression-bar-grid {
+  display: flex;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+
+.progression-bar {
+  background: #1a1a2e;
+  border: 1px solid #2d3748;
+  border-radius: 10px;
+  cursor: pointer;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+  min-width: 72px;
+  padding: 12px 10px 10px;
+  position: relative;
+  transition: background 0.15s, border-color 0.15s, transform 0.1s;
+}
+
+.progression-bar:hover:not(:disabled) {
+  background: #1e2a4a;
+  border-color: rgba(102, 126, 234, 0.3);
+}
+
+.progression-bar--filled {
+  border-color: #3a4a68;
+}
+
+.progression-bar--active {
+  background: rgba(102, 126, 234, 0.18);
+  border-color: rgba(102, 126, 234, 0.65);
+  transform: translateY(-2px);
+  box-shadow: 0 4px 16px rgba(102, 126, 234, 0.2);
+}
+
+.progression-bar-num {
+  position: absolute;
+  top: 5px;
+  left: 50%;
+  transform: translateX(-50%);
+  color: #4a5568;
+  font-size: 9px;
+  font-weight: 600;
+  letter-spacing: 0.05em;
+  font-family: 'Inter', system-ui, sans-serif;
+  pointer-events: none;
+}
+
+.progression-bar-clear {
+  position: absolute;
+  top: 3px;
+  left: 4px;
+  background: transparent;
+  border: none;
+  border-radius: 3px;
+  color: #3a4a68;
+  cursor: pointer;
+  font-size: 13px;
+  line-height: 1;
+  padding: 1px 3px;
+  transition: color 0.15s, background 0.15s;
+}
+
+.progression-bar-clear:hover {
+  color: #fc8181;
+  background: rgba(239, 68, 68, 0.12);
+}
+
+.progression-bar-numeral {
+  color: #667eea;
+  font-size: 13px;
+  font-weight: 700;
+  font-family: 'Inter', system-ui, sans-serif;
+  margin-top: 8px;
+}
+
+.progression-bar-note {
+  color: #e2e8f0;
+  font-size: 15px;
+  font-weight: 600;
+  font-family: 'Inter', system-ui, sans-serif;
+  line-height: 1;
+}
+
+.progression-bar-quality {
+  color: #718096;
+  font-size: 10px;
+  font-family: 'Inter', system-ui, sans-serif;
+}
+
+.progression-bar-empty {
+  color: #3a4a68;
+  font-size: 20px;
+  font-weight: 300;
+  margin-top: 8px;
+  line-height: 1.2;
+}
+
+.progression-bar--primed {
+  border-color: #667eea;
+  background: rgba(102, 126, 234, 0.12);
+  box-shadow: 0 0 0 2px rgba(102, 126, 234, 0.25);
+}
+
+.progression-bar--locked {
+  opacity: 0.3;
+  cursor: not-allowed;
+}
+
+/* ── Add-bar button ── */
+.progression-bar-add {
+  background: transparent;
+  border: 1px dashed #3a4a68;
+  border-radius: 10px;
+  color: #4a5568;
+  cursor: pointer;
+  font-size: 22px;
+  font-weight: 300;
+  min-width: 72px;
+  padding: 12px 10px 10px;
+  transition: border-color 0.15s, color 0.15s;
+  line-height: 1;
+  align-self: stretch;
+}
+
+.progression-bar-add:hover {
+  border-color: rgba(102, 126, 234, 0.5);
+  color: #667eea;
+}
+
+/* ── Hint text ── */
+.progression-hint {
+  color: #4a5568;
+  font-size: 12px;
+  margin: 0;
+  font-family: 'Inter', system-ui, sans-serif;
+}

@@ -263,9 +263,9 @@
 }
 
 .info-notes {
-  display: flex;
-  gap: 8px;
-  flex-wrap: wrap;
+  display: grid;
+  grid-template-columns: repeat(7, 1fr);
+  gap: 6px;
 }
 
 .info-note-badge {
@@ -273,15 +273,29 @@
   border: 1px solid rgba(102, 126, 234, 0.3);
   border-radius: 6px;
   color: #a5b4fc;
-  font-size: 14px;
+  font-size: 13px;
   font-weight: 600;
-  padding: 6px 12px;
+  padding: 6px 4px;
+  text-align: center;
 }
 
 .info-chords {
   display: grid;
   grid-template-columns: repeat(7, 1fr);
   gap: 6px;
+  transition: outline 0.15s;
+}
+
+/* When a progression bar is primed, chord buttons glow to invite selection */
+.info-chords--selecting .info-chord {
+  border-color: rgba(102, 126, 234, 0.3);
+  background: #1e2a4a;
+  cursor: pointer;
+}
+
+.info-chords--selecting .info-chord:hover {
+  background: rgba(102, 126, 234, 0.2);
+  border-color: rgba(102, 126, 234, 0.6);
 }
 
 .info-chord {
@@ -363,13 +377,16 @@
 /* ── Tab bar ── */
 .lab-tabs-wrapper {
   width: 100%;
+  background: #12192e;
+  border-radius: 16px;
+  border: 1px solid #2d3748;
+  overflow: hidden;
 }
 
 .lab-tab-bar {
   display: flex;
   gap: 4px;
   border-bottom: 1px solid #2d3748;
-  margin-bottom: 0;
 }
 
 .lab-tab {
@@ -401,21 +418,129 @@
   border-bottom-color: #9f3fbf;
 }
 
+/* ── Mini transport strip (shown on Fretboard/Chords while progression plays) ── */
+@keyframes miniTransportIn {
+  from { opacity: 0; transform: translateX(10px); }
+  to   { opacity: 1; transform: translateX(0); }
+}
+
+@keyframes miniTransportOut {
+  from { opacity: 1; transform: translateX(0); }
+  to   { opacity: 0; transform: translateX(10px); }
+}
+
+.progression-mini-transport {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-left: auto;
+  padding: 4px 6px 4px 12px;
+  background: rgba(102, 126, 234, 0.08);
+  border: 1px solid rgba(102, 126, 234, 0.2);
+  border-radius: 8px;
+  animation: miniTransportIn 0.2s ease-out;
+}
+
+.progression-mini-transport--stopping {
+  animation: miniTransportOut 0.25s ease-in forwards;
+  pointer-events: none;
+}
+
+.progression-mini-label {
+  color: #667eea;
+  font-size: 12px;
+  font-weight: 600;
+  font-family: 'Inter', system-ui, sans-serif;
+  letter-spacing: 0.04em;
+}
+
+.progression-mini-stop {
+  background: rgba(239, 68, 68, 0.1);
+  border: 1px solid rgba(239, 68, 68, 0.3);
+  border-radius: 6px;
+  color: #fca5a5;
+  cursor: pointer;
+  font-size: 11px;
+  font-weight: 600;
+  font-family: 'Inter', system-ui, sans-serif;
+  padding: 4px 12px;
+  transition: background 0.15s, border-color 0.15s;
+}
+
+.progression-mini-stop:hover {
+  background: rgba(239, 68, 68, 0.2);
+  border-color: rgba(239, 68, 68, 0.55);
+}
+
+.progression-mini-stop:active {
+  transform: scale(0.92);
+  background: rgba(239, 68, 68, 0.35);
+  transition: transform 0.08s, background 0.08s;
+}
+
+.progression-mini-bars {
+  display: flex;
+  gap: 4px;
+}
+
+.progression-mini-bar {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 1px;
+  background: rgba(255, 255, 255, 0.04);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 5px;
+  padding: 3px 7px;
+  min-width: 36px;
+  transition: background 0.15s, border-color 0.15s;
+}
+
+.progression-mini-bar--active {
+  background: rgba(102, 126, 234, 0.2);
+  border-color: rgba(102, 126, 234, 0.5);
+}
+
+.progression-mini-bar-numeral {
+  color: #667eea;
+  font-size: 11px;
+  font-weight: 700;
+  font-family: 'Inter', system-ui, sans-serif;
+}
+
+.progression-mini-bar--active .progression-mini-bar-numeral {
+  color: #a5b4fc;
+}
+
+.progression-mini-bar-note {
+  color: #a0aec0;
+  font-size: 11px;
+  font-weight: 500;
+  font-family: 'Inter', system-ui, sans-serif;
+}
+
+.progression-mini-bar--active .progression-mini-bar-note {
+  color: #e2e8f0;
+}
+
 /* ── Responsive ── */
 @media (min-width: 800px) {
   .cof-top-row {
     flex-direction: row;
     align-items: flex-start;
+    justify-content: space-between;
   }
 
   .cof-svg-wrapper {
-    flex: 1;
-    max-width: 460px;
+    flex: 0 0 auto;
+    width: min(460px, 50%);
   }
 
   .cof-info-panel {
-    flex: 1;
+    flex: 0 0 auto;
+    width: min(380px, 45%);
     max-width: 380px;
+    margin-right: 18px;
   }
 }
 

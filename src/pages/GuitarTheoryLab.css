@@ -38,7 +38,7 @@
 
 .lab-main {
   flex: 1;
-  padding: 40px 24px;
+  padding: 40px;
   display: flex;
   justify-content: center;
 }
@@ -53,6 +53,6 @@
   }
 
   .lab-main {
-    padding: 24px 16px;
+    padding: 24px;
   }
 }

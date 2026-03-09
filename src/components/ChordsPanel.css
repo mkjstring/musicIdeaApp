@@ -1,9 +1,6 @@
 .chords-panel {
   width: 100%;
-  background: #12192e;
-  border-radius: 16px;
   padding: 24px;
-  border: 1px solid #2d3748;
   display: flex;
   flex-direction: column;
   gap: 20px;
@@ -68,8 +65,9 @@
 
 .chord-inversions {
   display: flex;
-  gap: 20px;
+  justify-content: space-evenly;
   flex-wrap: wrap;
+  gap: 16px;
   align-items: flex-start;
 }
 

@@ -59,6 +59,7 @@ export function ChordsPanel({ chords, scaleSemitones, useFlats, mode, selectedDe
     <div className="chords-panel">
       <div className="chords-panel-header">
         <select
+          id="chords-type-select"
           className="chords-type-select"
           value={chordType}
           onChange={e => setChordType(e.target.value as ChordType)}

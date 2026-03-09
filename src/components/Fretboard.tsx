@@ -95,8 +95,8 @@ export function Fretboard({ tonicSemitone, scaleSemitones, chords, useFlats, mod
   return (
     <div className="fretboard-section">
       <div className="fretboard-header">
-        <h3 className="fretboard-title">Fretboard</h3>
         <select
+          id="fretboard-degree-select"
           className="degree-select"
           value={selectedDegree}
           onChange={e => onDegreeChange(e.target.value)}

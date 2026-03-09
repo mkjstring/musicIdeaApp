@@ -1,6 +1,7 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { Fretboard } from './Fretboard'
 import { ChordsPanel } from './ChordsPanel'
+import { ProgressionLab, type ProgressionBar } from './ProgressionLab'
 import './CircleOfFifths.css'
 
 const CX = 250, CY = 250
@@ -133,7 +134,33 @@ export function CircleOfFifths() {
   const [selectedIndex, setSelectedIndex] = useState(0)
   const [selectedMode, setSelectedMode] = useState<Mode>('major')
   const [selectedDegree, setSelectedDegree] = useState('scale')
-  const [activeTab, setActiveTab] = useState<'fretboard' | 'chords'>('fretboard')
+  const [activeTab, setActiveTab] = useState<'fretboard' | 'chords' | 'progression'>('fretboard')
+  const [primedBar, setPrimedBar] = useState<number | null>(null)
+  const [progressionBars, setProgressionBars] = useState<ProgressionBar[]>(
+    Array(4).fill(null).map(() => ({ degree: null }))
+  )
+  const [progressionBarCount, setProgressionBarCount] = useState(4)
+  const [isProgressionPlaying, setIsProgressionPlaying] = useState(false)
+  const [stopRequest, setStopRequest] = useState(false)
+  const [activeProgressionBar, setActiveProgressionBar] = useState<number | null>(null)
+
+  useEffect(() => {
+    if (!isProgressionPlaying) {
+      setStopRequest(false)
+      if (activeTab === 'progression' && progressionBars.every(b => b.degree === null)) {
+        setPrimedBar(0)
+      }
+    }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [isProgressionPlaying])
+
+  useEffect(() => {
+    if (activeTab === 'progression' && !isProgressionPlaying && primedBar === null) {
+      const firstEmpty = progressionBars.findIndex(b => b.degree === null)
+      if (firstEmpty !== -1) setPrimedBar(firstEmpty)
+    }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [activeTab])
 
   function rotate(index: number) {
     const currentMod = ((rotation % 360) + 360) % 360
@@ -145,6 +172,7 @@ export function CircleOfFifths() {
   }
 
   function handleMajorClick(index: number) {
+    if (isProgressionPlaying && activeTab === 'progression') return
     setSelectedIndex(index)
     setSelectedMode('major')
     setSelectedDegree('scale')
@@ -152,6 +180,7 @@ export function CircleOfFifths() {
   }
 
   function handleMinorClick(index: number) {
+    if (isProgressionPlaying && activeTab === 'progression') return
     setSelectedIndex(index)
     setSelectedMode('minor')
     setSelectedDegree('scale')
@@ -189,6 +218,7 @@ export function CircleOfFifths() {
           className="cof-svg"
           aria-label="Circle of fifths — click a key to select it"
           role="img"
+          style={isProgressionPlaying && activeTab === 'progression' ? { opacity: 0.5, pointerEvents: 'none' } : undefined}
         >
           <defs>
             <linearGradient id="centerGradient" x1="0%" y1="0%" x2="100%" y2="100%">
@@ -346,12 +376,27 @@ export function CircleOfFifths() {
 
         <div className="info-section">
           <h3>Diatonic Chords</h3>
-          <div className="info-chords">
+          <div className={`info-chords${activeTab === 'progression' && primedBar !== null ? ' info-chords--selecting' : ''}`}>
             {chords.map(chord => (
               <div
                 key={chord.numeral}
                 className={`info-chord${selectedDegree === chord.numeral ? ' info-chord-active' : ''}`}
-                onClick={() => setSelectedDegree(prev => prev === chord.numeral ? 'scale' : chord.numeral)}
+                onClick={() => {
+                  if (activeTab === 'progression' && primedBar !== null) {
+                    const nextBars = progressionBars.map((b, i) =>
+                      i === primedBar ? { degree: chord.numeral } : b
+                    )
+                    setProgressionBars(nextBars)
+                    const nextIdx = primedBar + 1
+                    if (nextIdx < nextBars.length && nextBars[nextIdx].degree === null) {
+                      setPrimedBar(nextIdx)
+                    } else {
+                      setPrimedBar(null)
+                    }
+                  } else {
+                    setSelectedDegree(prev => prev === chord.numeral ? 'scale' : chord.numeral)
+                  }
+                }}
                 role="button"
                 aria-label={`Show ${chord.numeral} triad on fretboard`}
               >
@@ -367,6 +412,7 @@ export function CircleOfFifths() {
           <h3>{isMajor ? 'Relative Minor' : 'Relative Major'}</h3>
           <button
             className="info-relative-link"
+            disabled={isProgressionPlaying && activeTab === 'progression'}
             onClick={() => isMajor ? handleMinorClick(selectedIndex) : handleMajorClick(selectedIndex)}
           >
             {isMajor ? selectedKey.minor : selectedKey.major}
@@ -389,6 +435,37 @@ export function CircleOfFifths() {
           >
             Chords
           </button>
+          <button
+            className={`lab-tab${activeTab === 'progression' ? ' active' : ''}`}
+            onClick={() => setActiveTab('progression')}
+          >
+            Progression
+          </button>
+          {isProgressionPlaying && activeTab !== 'progression' && (
+            <div className={`progression-mini-transport${stopRequest ? ' progression-mini-transport--stopping' : ''}`}>
+              <span className="progression-mini-label">● Playing</span>
+              <div className="progression-mini-bars">
+                {progressionBars.map((bar, i) => {
+                  const chord = bar.degree ? chords.find(c => c.numeral === bar.degree) : null
+                  return (
+                    <div
+                      key={i}
+                      className={`progression-mini-bar${activeProgressionBar === i ? ' progression-mini-bar--active' : ''}`}
+                    >
+                      <span className="progression-mini-bar-numeral">{chord ? chord.numeral : '—'}</span>
+                      {chord && <span className="progression-mini-bar-note">{chord.note}</span>}
+                    </div>
+                  )
+                })}
+              </div>
+              <button
+                className="progression-mini-stop"
+                onClick={() => setStopRequest(true)}
+              >
+                ■ Stop
+              </button>
+            </div>
+          )}
         </div>
         {activeTab === 'fretboard' && (
           <Fretboard
@@ -411,6 +488,21 @@ export function CircleOfFifths() {
             onDegreeChange={setSelectedDegree}
           />
         )}
+        <div style={{ display: activeTab === 'progression' ? 'block' : 'none' }}>
+          <ProgressionLab
+            chords={chords}
+            scaleSemitones={scaleSemitones}
+            bars={progressionBars}
+            barCount={progressionBarCount}
+            onBarsChange={setProgressionBars}
+            onBarCountChange={setProgressionBarCount}
+            primedBar={primedBar}
+            onPrimedBarChange={setPrimedBar}
+            onPlayingChange={setIsProgressionPlaying}
+            onActiveBarChange={setActiveProgressionBar}
+            stopRequested={stopRequest}
+          />
+        </div>
       </div>
     </div>
   )

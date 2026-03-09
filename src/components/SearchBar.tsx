@@ -95,14 +95,14 @@ export function SearchBar({ availableTags, onFilterChange }: SearchBarProps) {
             <div className="search-group">
               <label>Key</label>
               <div className="key-selects">
-                <select value={filters.keyNote} onChange={e => update('keyNote', e.target.value)} aria-label="Note">
+                <select id="search-key-note" value={filters.keyNote} onChange={e => update('keyNote', e.target.value)} aria-label="Note">
                   <option value="">—</option>
                   {NOTES.map(n => <option key={n} value={n}>{n}</option>)}
                 </select>
-                <select value={filters.keyAccidental} onChange={e => update('keyAccidental', e.target.value)} aria-label="Accidental" disabled={!filters.keyNote}>
+                <select id="search-key-accidental" value={filters.keyAccidental} onChange={e => update('keyAccidental', e.target.value)} aria-label="Accidental" disabled={!filters.keyNote}>
                   {ACCIDENTALS.map(a => <option key={a.value} value={a.value}>{a.label}</option>)}
                 </select>
-                <select value={filters.keyScale} onChange={e => update('keyScale', e.target.value)} aria-label="Scale" disabled={!filters.keyNote}>
+                <select id="search-key-scale" value={filters.keyScale} onChange={e => update('keyScale', e.target.value)} aria-label="Scale" disabled={!filters.keyNote}>
                   <option value="">—</option>
                   {SCALES.map(s => <option key={s} value={s}>{s}</option>)}
                 </select>

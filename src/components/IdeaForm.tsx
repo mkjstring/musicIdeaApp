@@ -123,14 +123,14 @@ export function IdeaForm({ initialTitle, initialData, availableTags, onSubmit, o
         <div className="form-group">
           <label>Key</label>
           <div className="key-selects">
-            <select value={keyNote} onChange={e => setKeyNote(e.target.value)} aria-label="Note">
+            <select id="idea-key-note" value={keyNote} onChange={e => setKeyNote(e.target.value)} aria-label="Note">
               <option value="">—</option>
               {NOTES.map(n => <option key={n} value={n}>{n}</option>)}
             </select>
-            <select value={keyAccidental} onChange={e => setKeyAccidental(e.target.value)} aria-label="Accidental" disabled={!keyNote}>
+            <select id="idea-key-accidental" value={keyAccidental} onChange={e => setKeyAccidental(e.target.value)} aria-label="Accidental" disabled={!keyNote}>
               {ACCIDENTALS.map(a => <option key={a.value} value={a.value}>{a.label}</option>)}
             </select>
-            <select value={keyScale} onChange={e => setKeyScale(e.target.value)} aria-label="Scale" disabled={!keyNote}>
+            <select id="idea-key-scale" value={keyScale} onChange={e => setKeyScale(e.target.value)} aria-label="Scale" disabled={!keyNote}>
               <option value="">—</option>
               {SCALES.map(s => <option key={s} value={s}>{s}</option>)}
             </select>
