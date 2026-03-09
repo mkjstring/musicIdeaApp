@@ -45,7 +45,7 @@ export function ChordsPanel({ chords, scaleSemitones, useFlats, mode, selectedDe
     let standardVoicings: ReturnType<typeof getStandardMaj7Voicings> | null = null
     if (chordType === '7th' && chordTones.length >= 4) {
       const isMaj7 = ((chordTones[3] - chordTones[0] + 12) % 12) === 11
-      if (isMaj7) standardVoicings = getStandardMaj7Voicings(rootSemitone)
+      if (isMaj7) standardVoicings = getStandardMaj7Voicings(rootSemitone, chordTones)
     }
 
     return { chordTones, wovbcVoicings, standardVoicings }

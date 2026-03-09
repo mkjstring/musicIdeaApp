@@ -5,12 +5,13 @@ const STRING_COLS = [37, 57, 77, 97, 117, 137]
 const FRET_ROWS   = [50, 77, 104, 131, 158]
 const NUT_Y = 36
 const SVG_W = 168
-const SVG_H = 210
+const SVG_H = 178
 const DOT_R = 11
 const OPEN_Y = 22
 
-// Fret position markers (right side of diagram)
-const MARKER_X = STRING_COLS[5] + DOT_R + 10  // = 158
+// Fret position markers (center of fretboard)
+const MARKER_X_SINGLE = (STRING_COLS[2] + STRING_COLS[3]) / 2  // = 87, between D and G
+const MARKER_X_DOUBLE = [(STRING_COLS[1] + STRING_COLS[2]) / 2, (STRING_COLS[3] + STRING_COLS[4]) / 2]  // = [67, 107]
 const MARKER_SINGLE = new Set([3, 5, 7, 9, 15, 17, 19, 21])
 const MARKER_DOUBLE = new Set([12, 24])
 
@@ -94,13 +95,13 @@ export function ChordDiagram({ voicing, chordTones, useFlats, mode, label }: Cho
           if (MARKER_DOUBLE.has(absoluteFret)) {
             return (
               <g key={rowIdx}>
-                <circle cx={MARKER_X} cy={y - 5} r={3} className="cd-fret-marker" />
-                <circle cx={MARKER_X} cy={y + 5} r={3} className="cd-fret-marker" />
+                <circle cx={MARKER_X_DOUBLE[0]} cy={y} r={3} className="cd-fret-marker" />
+                <circle cx={MARKER_X_DOUBLE[1]} cy={y} r={3} className="cd-fret-marker" />
               </g>
             )
           }
           if (MARKER_SINGLE.has(absoluteFret)) {
-            return <circle key={rowIdx} cx={MARKER_X} cy={y} r={3} className="cd-fret-marker" />
+            return <circle key={rowIdx} cx={MARKER_X_SINGLE} cy={y} r={3} className="cd-fret-marker" />
           }
           return null
         })}
