@@ -1,9 +1,9 @@
 import './Fretboard.css'
 
-// Standard tuning open string semitones (E A D G B e)
-const OPEN_STRINGS = [4, 9, 2, 7, 11, 4]
-const STRING_LABELS = ['E', 'A', 'D', 'G', 'B', 'e']
-const STRING_WIDTHS = [2.8, 2.4, 2.0, 1.5, 1.1, 0.8]
+// Standard tuning open string semitones (high e to low E)
+const OPEN_STRINGS = [4, 11, 7, 2, 9, 4]
+const STRING_LABELS = ['e', 'B', 'G', 'D', 'A', 'E']
+const STRING_WIDTHS = [0.8, 1.1, 1.5, 2.0, 2.4, 2.8]
 
 const FRET_COUNT = 15
 const INLAY_FRETS = [3, 5, 7, 9, 12, 15]
@@ -14,7 +14,7 @@ const OPEN_COL_W = 44
 const NUT_W = 5
 const FRET_SPACING = 50
 const NUT_X = OPEN_COL_W + NUT_W
-const TOP_PAD = 20
+const TOP_PAD = 30
 const BOT_PAD = 22
 const SVG_H = 185
 const SVG_W = NUT_X + FRET_COUNT * FRET_SPACING + 16  // 815
@@ -31,10 +31,11 @@ function noteToSemitone(note: string): number {
   return idx
 }
 
-function triadSemitones(rootNote: string, quality: string): Set<number> {
+// Returns [rootSemitone, thirdSemitone, fifthSemitone]
+function triadTones(rootNote: string, quality: string): [number, number, number] {
   const root = noteToSemitone(rootNote)
   const intervals = quality === 'maj' ? [0, 4, 7] : quality === 'min' ? [0, 3, 7] : [0, 3, 6]
-  return new Set(intervals.map(i => (root + i) % 12))
+  return intervals.map(i => (root + i) % 12) as [number, number, number]
 }
 
 function stringY(s: number) { return TOP_PAD + s * STRING_SPACING }
@@ -61,11 +62,13 @@ export function Fretboard({ tonicSemitone, scaleSemitones, chords, useFlats, mod
   const chromatic = useFlats ? CHROMATIC_FLAT : CHROMATIC_SHARP
 
   const chord = chords.find(c => c.numeral === selectedDegree)
+  const [rootSem, thirdSem, fifthSem] = chord
+    ? triadTones(chord.note, chord.quality)
+    : [null, null, null]
+
   const activeSemitones = selectedDegree === 'scale' || !chord
     ? scaleSemitones
-    : triadSemitones(chord.note, chord.quality)
-
-  const chordRootSemitone = chord ? noteToSemitone(chord.note) : null
+    : new Set([rootSem!, thirdSem!, fifthSem!])
 
   function dotClass(semitone: number): string {
     if (selectedDegree === 'scale') {
@@ -73,9 +76,9 @@ export function Fretboard({ tonicSemitone, scaleSemitones, chords, useFlats, mod
         ? `note-dot note-dot-tonic note-dot-tonic-${mode}`
         : 'note-dot note-dot-scale'
     }
-    return semitone === chordRootSemitone
-      ? `note-dot note-dot-root note-dot-root-${mode}`
-      : 'note-dot note-dot-chord-tone'
+    if (semitone === rootSem)  return `note-dot note-dot-root note-dot-root-${mode}`
+    if (semitone === thirdSem) return 'note-dot note-dot-third'
+    return 'note-dot note-dot-fifth'
   }
 
   return (
@@ -96,12 +99,24 @@ export function Fretboard({ tonicSemitone, scaleSemitones, chords, useFlats, mod
         </select>
       </div>
 
+      <div className={`fretboard-legend${!chord ? ' fretboard-legend--hidden' : ''}`}>
+        <span className="legend-item legend-root">
+          <span className="legend-swatch" /> Root
+        </span>
+        <span className="legend-item legend-third">
+          <span className="legend-swatch" /> 3rd
+        </span>
+        <span className="legend-item legend-fifth">
+          <span className="legend-swatch" /> 5th
+        </span>
+      </div>
+
       <div className="fretboard-scroll-wrapper">
         <svg viewBox={`0 0 ${SVG_W} ${SVG_H}`} className="fretboard-svg" aria-label="Guitar fretboard">
 
           {/* Fret number labels */}
           {Array.from({ length: FRET_COUNT }, (_, i) => i + 1).map(fret => (
-            <text key={fret} x={dotCenterX(fret)} y={11} textAnchor="middle" className="fret-number">
+            <text key={fret} x={dotCenterX(fret)} y={14} textAnchor="middle" className="fret-number">
               {fret}
             </text>
           ))}
@@ -138,7 +153,7 @@ export function Fretboard({ tonicSemitone, scaleSemitones, chords, useFlats, mod
           {/* String lines + labels */}
           {Array.from({ length: STRING_COUNT }, (_, s) => (
             <g key={s}>
-              <text x={12} y={stringY(s)} textAnchor="middle" dominantBaseline="central" className="string-label">
+              <text x={OPEN_COL_W / 2} y={stringY(s)} textAnchor="middle" dominantBaseline="central" className="string-label">
                 {STRING_LABELS[s]}
               </text>
               <line
@@ -159,7 +174,7 @@ export function Fretboard({ tonicSemitone, scaleSemitones, chords, useFlats, mod
               const y = stringY(s)
               return (
                 <g key={`${s}-${fret}`}>
-                  <circle cx={x} cy={y} r={10.5} className={dotClass(semitone)} />
+                  <circle cx={x} cy={y} r={12} className={dotClass(semitone)} />
                   <text x={x} y={y} textAnchor="middle" dominantBaseline="central" className="note-dot-label">
                     {chromatic[semitone]}
                   </text>
