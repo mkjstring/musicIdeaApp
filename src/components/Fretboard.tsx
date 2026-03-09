@@ -31,10 +31,10 @@ function noteToSemitone(note: string): number {
   return idx
 }
 
-function triadTones(rootNote: string, quality: string): [number, number, number] {
+function triadSemitones(rootNote: string, quality: string): Set<number> {
   const root = noteToSemitone(rootNote)
   const intervals = quality === 'maj' ? [0, 4, 7] : quality === 'min' ? [0, 3, 7] : [0, 3, 6]
-  return intervals.map(i => (root + i) % 12) as [number, number, number]
+  return new Set(intervals.map(i => (root + i) % 12))
 }
 
 function stringY(s: number) { return TOP_PAD + s * STRING_SPACING }
