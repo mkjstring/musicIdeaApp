@@ -353,6 +353,86 @@ export function getStandardHalfDim7Inv3Voicings(
     .filter((r): r is { voicing: Voicing; label: string } => r !== null)
 }
 
+// ── Maj6 2nd-inversion shape templates (5th in bass) ─────────────────────────
+//
+// Derived from Cmaj6/G voicings (G = perfect 5th of C).
+// applyTemplate is called with fifthSemitone = (chordRoot + 7) % 12.
+//
+//   E str.  [0, 0, -1, -1, null, null]  — G C E A  (from [3,3,2,2,x,x])
+//   A str.  [null, 0, 0, -1, 0, null]   — G C E A  (from [x,10,10,9,10,x])
+//   D str.  [null, null, 0, 0, 0, 0]    — G C E A  (from [x,x,5,5,5,5])
+//
+const MAJ6_INV2_TEMPLATES: ShapeTemplate[] = [
+  { label: 'E str.', bassString: 0, offsets: [0,    0,    -1, -1, null, null] },
+  { label: 'A str.', bassString: 1, offsets: [null, 0,     0, -1,  0,   null] },
+  { label: 'D str.', bassString: 2, offsets: [null, null,  0,  0,  0,    0  ] },
+]
+
+export function getStandardMaj6Inv2Voicings(
+  chordRoot: number,
+  chordTones: number[],
+): Array<{ voicing: Voicing; label: string }> {
+  const fifthSemitone = (chordRoot + 7) % 12
+  return MAJ6_INV2_TEMPLATES
+    .map(template => applyTemplate(template, fifthSemitone, chordTones))
+    .filter((r): r is { voicing: Voicing; label: string } => r !== null)
+}
+
+// ── Maj6 3rd-inversion shape templates (6th in bass) ─────────────────────────
+//
+// Derived from Cmaj6/A voicings (A = major 6th of C).
+// applyTemplate is called with sixthSemitone = (chordRoot + 9) % 12.
+//
+// Negative offsets (-2, -3) trigger the automatic octave shift in applyTemplate
+// for keys where the bass note falls at a low fret on the reference string.
+//
+//   E str.  [0, -2, 0, -3, null, null]  — A C G A  (from [5,3,5,2,x,x])
+//   A str.  [null, 0, -2, 0, -2, null]  — A C G A  (from [x,12,10,12,10,x])
+//   D str.  [null, null, 0, -2, 1, -2]  — A C G A  (from [x,x,7,5,8,5])
+//
+const MAJ6_INV3_TEMPLATES: ShapeTemplate[] = [
+  { label: 'E str.', bassString: 0, offsets: [0,    -2,    0, -3,  null, null] },
+  { label: 'A str.', bassString: 1, offsets: [null,  0,   -2,  0,  -2,   null] },
+  { label: 'D str.', bassString: 2, offsets: [null,  null,  0, -2,   1,   -2 ] },
+]
+
+export function getStandardMaj6Inv3Voicings(
+  chordRoot: number,
+  chordTones: number[],
+): Array<{ voicing: Voicing; label: string }> {
+  const sixthSemitone = (chordRoot + 9) % 12
+  return MAJ6_INV3_TEMPLATES
+    .map(template => applyTemplate(template, sixthSemitone, chordTones))
+    .filter((r): r is { voicing: Voicing; label: string } => r !== null)
+}
+
+// ── Maj6 1st-inversion shape templates ────────────────────────────────────────
+//
+// Derived from Cmaj6/E voicings (E = major 3rd of C, fret 7 on A-string,
+// fret 12 on E-string, fret 2 on D-string).
+// The `rootSemitone` passed to applyTemplate is the BASS NOTE (the major 3rd),
+// not the chord root. Callers compute: thirdSemitone = (chordRoot + 4) % 12.
+//
+//   A str.  [null, 0, 0, -2, 1, null]   — E A C G  (mid register)
+//   E str.  [0, 0, -2, 0, null, null]   — E A C G  (high; offset -2 triggers octave shift for open E)
+//   D str.  [null, null, 0, 0, -1, 1]   — E A C G  (treble strings)
+//
+const MAJ6_INV1_TEMPLATES: ShapeTemplate[] = [
+  { label: 'A str.', bassString: 1, offsets: [null,  0,    0, -2,  1, null] },
+  { label: 'E str.', bassString: 0, offsets: [0,     0,   -2,  0, null, null] },
+  { label: 'D str.', bassString: 2, offsets: [null, null,  0,  0, -1,  1] },
+]
+
+export function getStandardMaj6Inv1Voicings(
+  chordRoot: number,
+  chordTones: number[],
+): Array<{ voicing: Voicing; label: string }> {
+  const thirdSemitone = (chordRoot + 4) % 12
+  return MAJ6_INV1_TEMPLATES
+    .map(template => applyTemplate(template, thirdSemitone, chordTones))
+    .filter((r): r is { voicing: Voicing; label: string } => r !== null)
+}
+
 // Am7 1st-inversion voicings are enharmonically identical to Xmaj6 root position
 // (same pitch classes, same bass note). Uses the existing MAJ6_TEMPLATES.
 // Bass note = minor 3rd above minorRoot = (minorRoot + 3) % 12.

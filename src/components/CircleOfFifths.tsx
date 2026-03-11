@@ -383,7 +383,7 @@ export function CircleOfFifths() {
                 onClick={() => {
                   if (activeTab === 'progression' && primedBar !== null) {
                     const nextBars = progressionBars.map((b, i) =>
-                      i === primedBar ? { degree: chord.numeral } : b
+                      i === primedBar ? { ...b, degree: chord.numeral } : b
                     )
                     setProgressionBars(nextBars)
                     const nextIdx = primedBar + 1
@@ -494,6 +494,7 @@ export function CircleOfFifths() {
           <ProgressionLab
             chords={chords}
             scaleSemitones={scaleSemitones}
+            mode={selectedMode}
             bars={progressionBars}
             barCount={progressionBarCount}
             onBarsChange={setProgressionBars}

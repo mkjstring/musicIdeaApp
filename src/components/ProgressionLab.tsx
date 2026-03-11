@@ -1,18 +1,21 @@
 import { useState, useRef, useCallback, useEffect } from 'react'
 import * as Tone from 'tone'
 import type { ChordInfo } from './Fretboard'
+import type { ChordType } from '../utils/chordVoicings'
 import { getDiatonicChordTones } from '../utils/chordVoicings'
 import { CustomSelect } from './CustomSelect'
 import { pitchClassesToMidi } from '../utils/midiUtils'
 import { playChord, stopAll, setBpm as engineSetBpm, setTimeSignature as engineSetTimeSig, scheduleMetronome } from '../utils/audioEngine'
 
 export interface ProgressionBar {
-  degree: string | null   // null = silence
+  degree: string | null
+  chordType?: ChordType
 }
 
 interface ProgressionLabProps {
   chords: ChordInfo[]
   scaleSemitones: Set<number>
+  mode: 'major' | 'minor'
   bars: ProgressionBar[]
   barCount: number
   onBarsChange: (bars: ProgressionBar[]) => void
@@ -36,9 +39,37 @@ function noteToSemitone(note: string): number {
 const DENOM_OPTIONS = [1, 2, 4, 8, 16, 32]
 const BAR_COUNT_OPTIONS = [4, 5, 6, 7, 8, 9, 10, 11, 12]
 
+const CHORD_TYPES: { value: ChordType; label: string; sup: string }[] = [
+  { value: 'triad', label: 'Triad', sup: '' },
+  { value: '6th',   label: '6',     sup: '⁶' },
+  { value: '7th',   label: '7',     sup: '⁷' },
+  { value: '9th',   label: '9',     sup: '⁹' },
+]
+
+const COMMON_PROGRESSIONS_MAJOR = [
+  { name: 'I–V–vi–IV',     numerals: ['I', 'V', 'vi', 'IV'] },
+  { name: 'I–IV–V–I',      numerals: ['I', 'IV', 'V', 'I'] },
+  { name: 'I–vi–IV–V',     numerals: ['I', 'vi', 'IV', 'V'] },
+  { name: 'ii–V–I',        numerals: ['ii', 'V', 'I'] },
+  { name: 'I–iii–IV–V',    numerals: ['I', 'iii', 'IV', 'V'] },
+  { name: 'I–V–vi–iii–IV', numerals: ['I', 'V', 'vi', 'iii', 'IV'] },
+  { name: 'vi–IV–I–V',     numerals: ['vi', 'IV', 'I', 'V'] },
+  { name: 'I–IV–vii°–iii', numerals: ['I', 'IV', 'vii°', 'iii'] },
+]
+
+const COMMON_PROGRESSIONS_MINOR = [
+  { name: 'i–VII–VI–VII', numerals: ['i', 'VII', 'VI', 'VII'] },
+  { name: 'i–iv–v–i',     numerals: ['i', 'iv', 'v', 'i'] },
+  { name: 'i–VI–III–VII', numerals: ['i', 'VI', 'III', 'VII'] },
+  { name: 'i–VII–VI–v',   numerals: ['i', 'VII', 'VI', 'v'] },
+  { name: 'i–iv–VII–III', numerals: ['i', 'iv', 'VII', 'III'] },
+  { name: 'ii°–v–i',      numerals: ['ii°', 'v', 'i'] },
+]
+
 export function ProgressionLab({
   chords,
   scaleSemitones,
+  mode,
   bars,
   barCount,
   onBarsChange,
@@ -71,11 +102,10 @@ export function ProgressionLab({
   function handleBarClick(idx: number) {
     if (isPlaying) return
     if (primedBar === idx) {
-      onPrimedBarChange(null)       // second click = unprime
+      onPrimedBarChange(null)
     } else if (primedBar === null) {
-      onPrimedBarChange(idx)        // prime this bar
+      onPrimedBarChange(idx)
     }
-    // if a different bar is primed: do nothing (locked)
   }
 
   function handleClearBar(idx: number) {
@@ -96,13 +126,25 @@ export function ProgressionLab({
     const newCount = barCount + 1
     onBarCountChange(newCount)
     onBarsChange([...bars, { degree: null }])
-    onPrimedBarChange(barCount) // new bar index = current barCount (0-based)
+    onPrimedBarChange(barCount)
   }
 
   function handleBpmChange(val: number) {
     const clamped = Math.max(20, Math.min(300, val))
     setBpmState(clamped)
     engineSetBpm(clamped)
+  }
+
+  function handleChordTypeChange(type: ChordType) {
+    if (primedBar === null) return
+    onBarsChange(bars.map((b, i) => i === primedBar ? { ...b, chordType: type } : b))
+  }
+
+  function handleLoadPreset(numerals: string[]) {
+    const newBars: ProgressionBar[] = numerals.map(n => ({ degree: n, chordType: 'triad' }))
+    onBarCountChange(newBars.length)
+    onBarsChange(newBars)
+    onPrimedBarChange(null)
   }
 
   const startPlayback = useCallback(async () => {
@@ -123,16 +165,13 @@ export function ProgressionLab({
 
     onPrimedBarChange(null)
 
-    // Schedule metronome clicks on every beat
     scheduleMetronome(denom)
 
-    // Loop the progression
     const loopDuration = currentBars.length * barDuration
     Tone.getTransport().loop = true
     Tone.getTransport().loopStart = 0
     Tone.getTransport().loopEnd = loopDuration
 
-    // Schedule chord playback per bar (events repeat automatically each loop)
     currentBars.forEach((bar, i) => {
       Tone.getTransport().schedule((time: number) => {
         Tone.getDraw().schedule(() => { setActiveBar(i); onActiveBarChange?.(i) }, time)
@@ -141,7 +180,7 @@ export function ProgressionLab({
           const chord = chords.find(c => c.numeral === bar.degree)
           if (chord) {
             const rootSt = noteToSemitone(chord.note)
-            const tones = getDiatonicChordTones(rootSt, scaleSemitones, 'triad')
+            const tones = getDiatonicChordTones(rootSt, scaleSemitones, bar.chordType ?? 'triad')
             const midiNotes = pitchClassesToMidi(tones, rootSt)
             playChord(midiNotes, barDuration * 0.88, time)
           }
@@ -161,6 +200,9 @@ export function ProgressionLab({
     onActiveBarChange?.(null)
     onPlayingChange(false)
   }
+
+  const progressions = mode === 'major' ? COMMON_PROGRESSIONS_MAJOR : COMMON_PROGRESSIONS_MINOR
+  const primedBarChordType = primedBar !== null ? (bars[primedBar]?.chordType ?? 'triad') : 'triad'
 
   return (
     <div className="p-6 flex flex-col gap-6">
@@ -231,6 +273,8 @@ export function ProgressionLab({
       <div className="flex gap-3 flex-wrap">
         {bars.map((bar, i) => {
           const chord = bar.degree ? chords.find(c => c.numeral === bar.degree) : null
+          const chordType = bar.chordType ?? 'triad'
+          const typeSup = CHORD_TYPES.find(t => t.value === chordType)?.sup ?? ''
           const isActive = activeBar === i
           const isPrimed = primedBar === i
           const isLocked = primedBar !== null && primedBar !== i
@@ -261,7 +305,9 @@ export function ProgressionLab({
               )}
               {chord ? (
                 <>
-                  <span className="text-accent text-[13px] font-bold mt-2">{chord.numeral}</span>
+                  <span className="text-accent text-[13px] font-bold mt-2 leading-none">
+                    {chord.numeral}<sup className="text-[9px] font-bold">{typeSup}</sup>
+                  </span>
                   <span className="text-text text-[15px] font-semibold leading-none">{chord.note}</span>
                   <span className="text-text-dim text-[10px]">{chord.quality}</span>
                 </>
@@ -276,6 +322,28 @@ export function ProgressionLab({
         )}
       </div>
 
+      {/* Chord type selector — shown when a bar is primed */}
+      {!isPlaying && primedBar !== null && (
+        <div className="flex items-center gap-3">
+          <span className="text-text-dim text-[10px] font-semibold tracking-[0.08em] uppercase shrink-0">Chord type</span>
+          <div className="flex gap-1.5">
+            {CHORD_TYPES.map(({ value, label }) => (
+              <button
+                key={value}
+                onClick={() => handleChordTypeChange(value)}
+                className={`rounded-md text-[12px] font-semibold px-3 py-1 border cursor-pointer transition-[background,border-color,color] duration-150 ${
+                  primedBarChordType === value
+                    ? 'bg-[rgba(102,126,234,0.22)] border-[rgba(102,126,234,0.6)] text-accent-soft'
+                    : 'bg-bg-input border-border-dim text-text-dim hover:bg-bg-raised hover:border-border hover:text-text-soft'
+                }`}
+              >
+                {label}
+              </button>
+            ))}
+          </div>
+        </div>
+      )}
+
       <p className="text-muted text-xs m-0">
         {isPlaying
           ? 'Playing…'
@@ -283,6 +351,24 @@ export function ProgressionLab({
           ? 'Select a chord from the info panel above to assign it to this bar.'
           : 'Click a bar to select it, then choose a chord from the panel above. Click again to deselect.'}
       </p>
+
+      {/* Common progressions */}
+      {!isPlaying && (
+        <div className="flex flex-col gap-3 pt-2 border-t border-border-dim">
+          <span className="text-text-dim text-[10px] font-semibold tracking-[0.08em] uppercase">Common Progressions</span>
+          <div className="flex flex-wrap gap-2">
+            {progressions.map(({ name, numerals }) => (
+              <button
+                key={name}
+                onClick={() => handleLoadPreset(numerals)}
+                className="bg-bg-input border border-border-dim rounded-lg text-text-soft text-[12px] font-medium px-3 py-1.5 cursor-pointer transition-[background,border-color,color] duration-150 hover:bg-bg-raised hover:border-[rgba(102,126,234,0.35)] hover:text-accent-soft"
+              >
+                {name}
+              </button>
+            ))}
+          </div>
+        </div>
+      )}
     </div>
   )
 }

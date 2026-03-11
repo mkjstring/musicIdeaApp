@@ -5,6 +5,9 @@ import {
   getStandardMaj7Voicings,
   getStandardMaj6Voicings,
   getStandardMaj7Inv1Voicings,
+  getStandardMaj6Inv1Voicings,
+  getStandardMaj6Inv2Voicings,
+  getStandardMaj6Inv3Voicings,
   getStandardMinor6Voicings,
   getStandardMinorMaj6Voicings,
   getStandardMinor7Inv1Voicings,
@@ -88,10 +91,15 @@ export function ChordsPanel({ chords, scaleSemitones, useFlats, mode, selectedDe
       else if (isMinor6)    standardVoicings = getStandardMinor6Voicings(rootSemitone, chordTones)
       else if (isMinorMaj6) standardVoicings = getStandardMinorMaj6Voicings(rootSemitone, chordTones)
     } else if (inversionIndex === 1) {
-      if (isMaj7)      standardVoicings = getStandardMaj7Inv1Voicings(rootSemitone, chordTones)
+      if (isMaj7)        standardVoicings = getStandardMaj7Inv1Voicings(rootSemitone, chordTones)
+      else if (isMaj6)   standardVoicings = getStandardMaj6Inv1Voicings(rootSemitone, chordTones)
       else if (isMinor7) standardVoicings = getStandardMaj6Voicings((rootSemitone + 3) % 12, chordTones)
+    } else if (inversionIndex === 2) {
+      if (isMaj6) standardVoicings = getStandardMaj6Inv2Voicings(rootSemitone, chordTones)
+    } else if (inversionIndex === 3) {
+      if (isMaj6) standardVoicings = getStandardMaj6Inv3Voicings(rootSemitone, chordTones)
     }
-    // 5th bass / 7th bass: no template sets yet — falls through to algorithmic single voicing
+    // Other chord types at inv 2/3 fall through to algorithmic single voicing
 
     // Substitute chord options (6th diminished enharmonic equivalencies)
     //
