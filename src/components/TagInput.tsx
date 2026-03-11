@@ -1,5 +1,4 @@
 import { useState, useRef, useEffect, useCallback, type KeyboardEvent } from 'react'
-import './TagInput.css'
 
 interface TagInputProps {
   value: string[]
@@ -55,14 +54,21 @@ export function TagInput({ value, onChange, suggestions, placeholder = 'Add tags
   }, [])
 
   return (
-    <div className="tag-input-container" ref={containerRef} onClick={() => inputRef.current?.focus()}>
-      <div className="tag-input-inner">
+    <div
+      className="relative bg-bg-input border border-border-dim rounded-lg cursor-text min-h-[42px] transition-colors duration-200 focus-within:border-accent"
+      ref={containerRef}
+      onClick={() => inputRef.current?.focus()}
+    >
+      <div className="flex flex-wrap gap-1.5 px-2.5 py-1.5 items-center min-h-[42px]">
         {value.map(tag => (
-          <span key={tag} className="tag-pill">
+          <span
+            key={tag}
+            className="inline-flex items-center gap-1 bg-accent/20 border border-accent/40 rounded-md text-accent-soft text-[13px] py-0.5 pl-2 pr-1.5 whitespace-nowrap"
+          >
             {tag}
             <button
               type="button"
-              className="tag-pill-remove"
+              className="bg-transparent border-none text-accent-soft cursor-pointer text-[15px] leading-none p-0 opacity-70 transition-opacity duration-150 hover:opacity-100"
               onClick={e => { e.stopPropagation(); removeTag(tag) }}
               aria-label={`Remove ${tag}`}
             >×</button>
@@ -70,7 +76,7 @@ export function TagInput({ value, onChange, suggestions, placeholder = 'Add tags
         ))}
         <input
           ref={inputRef}
-          className="tag-input-field"
+          className="bg-transparent border-none text-text text-sm min-w-[80px] flex-1 outline-none py-0.5 placeholder:text-muted"
           value={inputValue}
           placeholder={value.length === 0 ? placeholder : ''}
           onChange={e => { setInputValue(e.target.value); setShowDropdown(true) }}

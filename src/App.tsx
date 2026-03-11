@@ -9,7 +9,7 @@ function PrivateRoute({ children }: { children: React.ReactNode }) {
   const { user, loading } = useAuth()
 
   if (loading) {
-    return <div className="loading-screen">Loading...</div>
+    return <div className="flex items-center justify-center min-h-screen text-text-dim text-lg">Loading...</div>
   }
 
   return user ? <>{children}</> : <Navigate to="/login" />
@@ -19,7 +19,7 @@ function PublicRoute({ children }: { children: React.ReactNode }) {
   const { user, loading } = useAuth()
 
   if (loading) {
-    return <div className="loading-screen">Loading...</div>
+    return <div className="flex items-center justify-center min-h-screen text-text-dim text-lg">Loading...</div>
   }
 
   return user ? <Navigate to="/" /> : <>{children}</>

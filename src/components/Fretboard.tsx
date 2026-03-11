@@ -1,9 +1,9 @@
-import './Fretboard.css'
+import { CustomSelect } from './CustomSelect'
 
-// Standard tuning open string semitones (high e to low E)
-const OPEN_STRINGS = [4, 11, 7, 2, 9, 4]
-const STRING_LABELS = ['e', 'B', 'G', 'D', 'A', 'E']
-const STRING_WIDTHS = [0.8, 1.1, 1.5, 2.0, 2.4, 2.8]
+// Standard tuning open string semitones (low E to high e)
+const OPEN_STRINGS = [4, 9, 2, 7, 11, 4]
+const STRING_LABELS = ['E', 'A', 'D', 'G', 'B', 'e']
+const STRING_WIDTHS = [2.8, 2.4, 2.0, 1.5, 1.1, 0.8]
 
 const FRET_COUNT = 15
 const INLAY_FRETS = [3, 5, 7, 9, 12, 15]
@@ -93,38 +93,34 @@ export function Fretboard({ tonicSemitone, scaleSemitones, chords, useFlats, mod
   }
 
   return (
-    <div className="fretboard-section">
-      <div className="fretboard-header">
-        <select
+    <div className="w-full p-6">
+      <div className="flex items-center gap-4 mb-5 flex-wrap">
+        <CustomSelect
           id="fretboard-degree-select"
-          className="degree-select"
           value={selectedDegree}
-          onChange={e => onDegreeChange(e.target.value)}
-        >
-          <option value="scale">Scale — all diatonic notes</option>
-          <option value="pentatonic">Pentatonic — {mode} pentatonic notes</option>
-          {chords.map(c => (
-            <option key={c.numeral} value={c.numeral}>
-              {c.numeral} — {c.note} ({c.quality})
-            </option>
-          ))}
-        </select>
+          onChange={onDegreeChange}
+          options={[
+            { value: 'scale', label: 'Scale — all diatonic notes' },
+            { value: 'pentatonic', label: `Pentatonic — ${mode} pentatonic notes` },
+            ...chords.map(c => ({ value: c.numeral, label: `${c.numeral} — ${c.note} (${c.quality})` })),
+          ]}
+        />
       </div>
 
-      <div className={`fretboard-legend${selectedDegree === 'scale' || selectedDegree === 'pentatonic' ? ' fretboard-legend--hidden' : ''}`}>
-        <span className="legend-item legend-root">
-          <span className="legend-swatch" /> Root
+      <div className={`flex gap-5 mb-3${selectedDegree === 'scale' || selectedDegree === 'pentatonic' ? ' invisible' : ''}`}>
+        <span className="flex items-center gap-1.5 text-xs font-semibold text-text-soft">
+          <span className="w-3 h-3 rounded-full inline-block bg-accent" /> Root
         </span>
-        <span className="legend-item legend-third">
-          <span className="legend-swatch" /> 3rd
+        <span className="flex items-center gap-1.5 text-xs font-semibold text-text-soft">
+          <span className="w-3 h-3 rounded-full inline-block bg-[#b45309]" /> 3rd
         </span>
-        <span className="legend-item legend-fifth">
-          <span className="legend-swatch" /> 5th
+        <span className="flex items-center gap-1.5 text-xs font-semibold text-text-soft">
+          <span className="w-3 h-3 rounded-full inline-block bg-[#0f766e]" /> 5th
         </span>
       </div>
 
-      <div className="fretboard-scroll-wrapper">
-        <svg viewBox={`0 0 ${SVG_W} ${SVG_H}`} className="fretboard-svg" aria-label="Guitar fretboard">
+      <div className="w-full overflow-x-auto">
+        <svg viewBox={`0 0 ${SVG_W} ${SVG_H}`} className="block min-w-[600px] w-full h-auto" aria-label="Guitar fretboard">
 
           {/* Fret number labels */}
           {Array.from({ length: FRET_COUNT }, (_, i) => i + 1).map(fret => (
@@ -163,19 +159,22 @@ export function Fretboard({ tonicSemitone, scaleSemitones, chords, useFlats, mod
           ))}
 
           {/* String lines + labels */}
-          {Array.from({ length: STRING_COUNT }, (_, s) => (
-            <g key={s}>
-              <text x={OPEN_COL_W / 2} y={stringY(s)} textAnchor="middle" dominantBaseline="central" className="string-label">
-                {STRING_LABELS[s]}
-              </text>
-              <line
-                x1={NUT_X - NUT_W} y1={stringY(s)}
-                x2={SVG_W - 8} y2={stringY(s)}
-                className="string-line"
-                strokeWidth={STRING_WIDTHS[s]}
-              />
-            </g>
-          ))}
+          {Array.from({ length: STRING_COUNT }, (_, s) => {
+            const y = stringY(STRING_COUNT - 1 - s)
+            return (
+              <g key={s}>
+                <text x={OPEN_COL_W / 2} y={y} textAnchor="middle" dominantBaseline="central" className="string-label">
+                  {STRING_LABELS[s]}
+                </text>
+                <line
+                  x1={NUT_X - NUT_W} y1={y}
+                  x2={SVG_W - 8} y2={y}
+                  className="string-line"
+                  strokeWidth={STRING_WIDTHS[s]}
+                />
+              </g>
+            )
+          })}
 
           {/* Note dots */}
           {Array.from({ length: STRING_COUNT }, (_, s) =>
@@ -183,7 +182,7 @@ export function Fretboard({ tonicSemitone, scaleSemitones, chords, useFlats, mod
               const semitone = (OPEN_STRINGS[s] + fret) % 12
               if (!activeSemitones.has(semitone)) return null
               const x = dotCenterX(fret)
-              const y = stringY(s)
+              const y = stringY(STRING_COUNT - 1 - s)
               return (
                 <g key={`${s}-${fret}`}>
                   <circle cx={x} cy={y} r={12} className={dotClass(semitone)} />

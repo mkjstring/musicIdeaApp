@@ -2,9 +2,9 @@ import { useState, useRef, useCallback, useEffect } from 'react'
 import * as Tone from 'tone'
 import type { ChordInfo } from './Fretboard'
 import { getDiatonicChordTones } from '../utils/chordVoicings'
+import { CustomSelect } from './CustomSelect'
 import { pitchClassesToMidi } from '../utils/midiUtils'
 import { playChord, stopAll, setBpm as engineSetBpm, setTimeSignature as engineSetTimeSig, scheduleMetronome } from '../utils/audioEngine'
-import './ProgressionLab.css'
 
 export interface ProgressionBar {
   degree: string | null   // null = silence
@@ -163,15 +163,15 @@ export function ProgressionLab({
   }
 
   return (
-    <div className="progression-lab">
+    <div className="p-6 flex flex-col gap-6">
       {/* Transport controls */}
-      <div className="progression-controls">
-        <div className="progression-control-group">
-          <label htmlFor="prog-bpm" className="progression-control-label">BPM</label>
+      <div className="flex items-end gap-5 flex-wrap">
+        <div className="flex flex-col gap-1.5">
+          <label htmlFor="prog-bpm" className="text-text-dim text-[10px] font-semibold tracking-[0.08em] uppercase">BPM</label>
           <input
             id="prog-bpm"
             type="number"
-            className="progression-bpm-input"
+            className="progression-bpm-input bg-bg-input border border-border rounded-lg text-text text-sm px-[10px] py-2 w-[72px] outline-none transition-colors duration-200 focus:border-accent"
             value={bpm}
             min={20}
             max={300}
@@ -180,47 +180,47 @@ export function ProgressionLab({
           />
         </div>
 
-        <div className="progression-control-group">
-          <label className="progression-control-label">Time</label>
-          <div className="progression-timesig">
+        <div className="flex flex-col gap-1.5">
+          <label className="text-text-dim text-[10px] font-semibold tracking-[0.08em] uppercase">Time</label>
+          <div className="flex items-center gap-1">
             <input
               id="prog-timesig-num"
               type="number"
-              className="progression-timesig-input"
+              className="progression-timesig-input bg-bg-input border border-border rounded-lg text-text text-sm px-[10px] py-2 w-[52px] outline-none text-center transition-colors duration-200 focus:border-accent"
               value={timeSig[0]}
               min={1}
               max={12}
               disabled={isPlaying}
               onChange={e => setTimeSig([Math.max(1, Math.min(12, Number(e.target.value))), timeSig[1]])}
             />
-            <span className="progression-timesig-sep">/</span>
-            <select
+            <span className="text-muted text-lg font-light leading-none pb-0.5">/</span>
+            <CustomSelect
               id="prog-timesig-denom"
-              className="progression-timesig-select"
-              value={timeSig[1]}
+              className="w-[60px]"
+              value={String(timeSig[1])}
               disabled={isPlaying}
-              onChange={e => setTimeSig([timeSig[0], Number(e.target.value)])}
-            >
-              {DENOM_OPTIONS.map(d => <option key={d} value={d}>{d}</option>)}
-            </select>
+              showChevron={false}
+              onChange={v => setTimeSig([timeSig[0], Number(v)])}
+              options={DENOM_OPTIONS.map(d => ({ value: String(d), label: String(d) }))}
+            />
           </div>
         </div>
 
-        <div className="progression-control-group">
-          <label htmlFor="prog-bars" className="progression-control-label">Bars</label>
-          <select
+        <div className="flex flex-col gap-1.5">
+          <label htmlFor="prog-bars" className="text-text-dim text-[10px] font-semibold tracking-[0.08em] uppercase">Bars</label>
+          <CustomSelect
             id="prog-bars"
-            className="progression-bars-select"
-            value={barCount}
+            className="w-[60px]"
+            value={String(barCount)}
             disabled={isPlaying}
-            onChange={e => handleBarCountChange(Number(e.target.value))}
-          >
-            {BAR_COUNT_OPTIONS.map(n => <option key={n} value={n}>{n}</option>)}
-          </select>
+            showChevron={false}
+            onChange={v => handleBarCountChange(Number(v))}
+            options={BAR_COUNT_OPTIONS.map(n => ({ value: String(n), label: String(n) }))}
+          />
         </div>
 
         <button
-          className={`progression-play-btn${isPlaying ? ' progression-play-btn--stop' : ''}`}
+          className={`border rounded-lg cursor-pointer text-[13px] font-semibold px-5 py-[9px] transition-[background,border-color,color] duration-200 tracking-[0.02em] ${isPlaying ? 'bg-[rgba(239,68,68,0.12)] border-[rgba(239,68,68,0.35)] text-[#fca5a5] hover:bg-[rgba(239,68,68,0.22)] hover:border-[rgba(239,68,68,0.6)] hover:text-[#fecaca]' : 'bg-[rgba(102,126,234,0.15)] border-[rgba(102,126,234,0.4)] text-accent-soft hover:bg-[rgba(102,126,234,0.28)] hover:border-[rgba(102,126,234,0.7)] hover:text-[#c7d2fe]'}`}
           onClick={isPlaying ? handleStop : startPlayback}
         >
           {isPlaying ? '■ Stop' : '▶ Play'}
@@ -228,7 +228,7 @@ export function ProgressionLab({
       </div>
 
       {/* Bar grid */}
-      <div className="progression-bar-grid">
+      <div className="flex gap-3 flex-wrap">
         {bars.map((bar, i) => {
           const chord = bar.degree ? chords.find(c => c.numeral === bar.degree) : null
           const isActive = activeBar === i
@@ -238,19 +238,20 @@ export function ProgressionLab({
             <button
               key={i}
               className={[
-                'progression-bar',
-                chord ? 'progression-bar--filled' : '',
-                isActive ? 'progression-bar--active' : '',
-                isPrimed ? 'progression-bar--primed' : '',
-                isLocked ? 'progression-bar--locked' : '',
+                'bg-bg-input border border-border-dim rounded-[10px] cursor-pointer flex flex-col items-center gap-1 min-w-[72px] px-[10px] pt-3 pb-[10px] relative transition-[background,border-color,transform] duration-150',
+                'hover:enabled:bg-bg-raised hover:enabled:border-[rgba(102,126,234,0.3)]',
+                chord ? 'border-border' : '',
+                isActive ? '!bg-[rgba(102,126,234,0.18)] !border-[rgba(102,126,234,0.65)] -translate-y-0.5 shadow-[0_4px_16px_rgba(102,126,234,0.2)]' : '',
+                isPrimed ? '!border-accent !bg-[rgba(102,126,234,0.12)] shadow-[0_0_0_2px_rgba(102,126,234,0.25)]' : '',
+                isLocked ? 'opacity-30 cursor-not-allowed' : '',
               ].filter(Boolean).join(' ')}
               onClick={() => handleBarClick(i)}
               disabled={isPlaying || isLocked}
             >
-              <span className="progression-bar-num">{i + 1}</span>
+              <span className="absolute top-[5px] left-1/2 -translate-x-1/2 text-muted text-[9px] font-semibold tracking-[0.05em] pointer-events-none">{i + 1}</span>
               {chord && !isPlaying && (
                 <span
-                  className="progression-bar-clear"
+                  className="absolute top-[3px] left-1 bg-transparent border-none rounded-[3px] text-border cursor-pointer text-[13px] leading-none px-[3px] py-px transition-[color,background] duration-150 hover:text-red-soft hover:bg-[rgba(239,68,68,0.12)]"
                   role="button"
                   aria-label="Clear chord"
                   onClick={e => { e.stopPropagation(); handleClearBar(i) }}
@@ -260,22 +261,22 @@ export function ProgressionLab({
               )}
               {chord ? (
                 <>
-                  <span className="progression-bar-numeral">{chord.numeral}</span>
-                  <span className="progression-bar-note">{chord.note}</span>
-                  <span className="progression-bar-quality">{chord.quality}</span>
+                  <span className="text-accent text-[13px] font-bold mt-2">{chord.numeral}</span>
+                  <span className="text-text text-[15px] font-semibold leading-none">{chord.note}</span>
+                  <span className="text-text-dim text-[10px]">{chord.quality}</span>
                 </>
               ) : (
-                <span className="progression-bar-empty">{isPrimed ? '?' : '—'}</span>
+                <span className="text-border text-[20px] font-light mt-2 leading-[1.2]">{isPrimed ? '?' : '—'}</span>
               )}
             </button>
           )
         })}
         {!isPlaying && barCount < 12 && (
-          <button className="progression-bar-add" onClick={handleAddBar}>+</button>
+          <button className="bg-transparent border border-dashed border-border rounded-[10px] text-muted cursor-pointer text-[22px] font-light min-w-[72px] px-[10px] pt-3 pb-[10px] transition-[border-color,color] duration-150 leading-none self-stretch hover:border-[rgba(102,126,234,0.5)] hover:text-accent" onClick={handleAddBar}>+</button>
         )}
       </div>
 
-      <p className="progression-hint">
+      <p className="text-muted text-xs m-0">
         {isPlaying
           ? 'Playing…'
           : primedBar !== null

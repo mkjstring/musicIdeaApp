@@ -1,5 +1,4 @@
 import type { Voicing } from '../utils/chordVoicings'
-import './ChordDiagram.css'
 
 const STRING_COLS = [37, 57, 77, 97, 117, 137]
 const FRET_ROWS   = [50, 77, 104, 131, 158]
@@ -60,10 +59,10 @@ export function ChordDiagram({ voicing, chordTones, useFlats, mode, label }: Cho
   const bottomY  = FRET_ROWS[4] + 13
 
   return (
-    <div className="chord-diagram-wrapper">
+    <div className="flex flex-col items-center gap-1.5">
       <svg
         viewBox={`0 0 ${SVG_W} ${SVG_H}`}
-        className="chord-diagram-svg"
+        className="block w-[168px] h-auto"
         aria-label={`${label} chord shape`}
       >
         {/* Nut */}
@@ -138,8 +137,8 @@ export function ChordDiagram({ voicing, chordTones, useFlats, mode, label }: Cho
         })}
       </svg>
 
-      <div className="chord-diagram-label">{label}</div>
-      <div className="chord-diagram-tones">
+      <div className="text-text-soft text-xs font-medium text-center">{label}</div>
+      <div className="flex gap-[3px]">
         {chordTones.map((pc, i) => (
           <span
             key={i}

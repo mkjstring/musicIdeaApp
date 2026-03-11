@@ -1,7 +1,6 @@
 import { useState, type FormEvent } from 'react'
 import type { CreateMusicIdeaInput, MusicIdea } from '../types'
 import { TagInput } from './TagInput'
-import './IdeaForm.css'
 
 interface IdeaFormProps {
   initialTitle?: string
@@ -70,13 +69,18 @@ export function IdeaForm({ initialTitle, initialData, availableTags, onSubmit, o
     setSubmitting(false)
   }
 
-  return (
-    <form className="idea-form" onSubmit={handleSubmit}>
-      <h3 className="form-title">{isEditing ? 'Edit Idea' : 'New Idea'}</h3>
+  /* Shared classes for form inputs/selects/textareas */
+  const inputCls =
+    'bg-bg-input border border-border-dim rounded-lg text-text text-sm px-3 py-[10px] transition-[border-color] duration-200 focus:border-accent focus:outline-none idea-form-field'
 
-      <div className="form-row">
-        <div className="form-group flex-1">
-          <label htmlFor="title">Title *</label>
+  return (
+    <form className="bg-bg-card rounded-2xl p-6" onSubmit={handleSubmit}>
+      <h3 className="text-text text-xl m-0 mb-5">{isEditing ? 'Edit Idea' : 'New Idea'}</h3>
+
+      {/* Title row */}
+      <div className="idea-form-row flex gap-4 mb-4">
+        <div className="flex flex-col gap-[6px] flex-1">
+          <label htmlFor="title" className="text-text-soft text-sm font-medium">Title *</label>
           <input
             id="title"
             type="text"
@@ -84,26 +88,31 @@ export function IdeaForm({ initialTitle, initialData, availableTags, onSubmit, o
             onChange={e => setTitle(e.target.value)}
             placeholder="Funky riff in Am"
             required
+            className={inputCls}
           />
         </div>
       </div>
 
-      <div className="form-row">
-        <div className="form-group flex-1">
-          <label htmlFor="description">Description</label>
+      {/* Description row */}
+      <div className="idea-form-row flex gap-4 mb-4">
+        <div className="flex flex-col gap-[6px] flex-1">
+          <label htmlFor="description" className="text-text-soft text-sm font-medium">Description</label>
           <textarea
             id="description"
             value={description}
             onChange={e => setDescription(e.target.value)}
             placeholder="Add notes about this idea..."
             rows={3}
+            className={`${inputCls} font-[inherit] resize-y`}
           />
         </div>
       </div>
 
-      <div className="form-row">
-        <div className="form-group">
-          <label htmlFor="bpm">BPM</label>
+      {/* BPM + Key row */}
+      <div className="idea-form-row flex gap-4 mb-4">
+        {/* BPM */}
+        <div className="flex flex-col gap-[6px]">
+          <label htmlFor="bpm" className="text-text-soft text-sm font-medium">BPM</label>
           <input
             id="bpm"
             type="number"
@@ -112,25 +121,47 @@ export function IdeaForm({ initialTitle, initialData, availableTags, onSubmit, o
             placeholder="120"
             min="20"
             max="300"
+            className={`${inputCls} w-[100px]`}
           />
           {initialData?.estimated_bpm && (
-            <span className="estimated-bpm-hint">
+            <span className="text-[#d97706] text-[11px] font-medium">
               est. {initialData.estimated_bpm - 5}–{initialData.estimated_bpm + 5} BPM
             </span>
           )}
         </div>
 
-        <div className="form-group">
-          <label>Key</label>
-          <div className="key-selects">
-            <select id="idea-key-note" value={keyNote} onChange={e => setKeyNote(e.target.value)} aria-label="Note">
+        {/* Key */}
+        <div className="flex flex-col gap-[6px]">
+          <label className="text-text-soft text-sm font-medium">Key</label>
+          <div className="flex gap-[6px]">
+            <select
+              id="idea-key-note"
+              value={keyNote}
+              onChange={e => setKeyNote(e.target.value)}
+              aria-label="Note"
+              className={`${inputCls} min-w-[120px]`}
+            >
               <option value="">—</option>
               {NOTES.map(n => <option key={n} value={n}>{n}</option>)}
             </select>
-            <select id="idea-key-accidental" value={keyAccidental} onChange={e => setKeyAccidental(e.target.value)} aria-label="Accidental" disabled={!keyNote}>
+            <select
+              id="idea-key-accidental"
+              value={keyAccidental}
+              onChange={e => setKeyAccidental(e.target.value)}
+              aria-label="Accidental"
+              disabled={!keyNote}
+              className={`${inputCls} min-w-0 flex-1 disabled:opacity-40 disabled:cursor-not-allowed`}
+            >
               {ACCIDENTALS.map(a => <option key={a.value} value={a.value}>{a.label}</option>)}
             </select>
-            <select id="idea-key-scale" value={keyScale} onChange={e => setKeyScale(e.target.value)} aria-label="Scale" disabled={!keyNote}>
+            <select
+              id="idea-key-scale"
+              value={keyScale}
+              onChange={e => setKeyScale(e.target.value)}
+              aria-label="Scale"
+              disabled={!keyNote}
+              className={`${inputCls} min-w-0 flex-1 disabled:opacity-40 disabled:cursor-not-allowed`}
+            >
               <option value="">—</option>
               {SCALES.map(s => <option key={s} value={s}>{s}</option>)}
             </select>
@@ -138,18 +169,28 @@ export function IdeaForm({ initialTitle, initialData, availableTags, onSubmit, o
         </div>
       </div>
 
-      <div className="form-row">
-        <div className="form-group flex-1">
-          <label>Tags</label>
+      {/* Tags row */}
+      <div className="idea-form-row flex gap-4 mb-4">
+        <div className="flex flex-col gap-[6px] flex-1">
+          <label className="text-text-soft text-sm font-medium">Tags</label>
           <TagInput value={tags} onChange={setTags} suggestions={availableTags} />
         </div>
       </div>
 
-      <div className="form-actions">
-        <button type="button" className="cancel-button" onClick={onCancel}>
+      {/* Actions */}
+      <div className="flex justify-end gap-3 mt-6">
+        <button
+          type="button"
+          className="bg-transparent border border-muted rounded-lg text-text-soft cursor-pointer text-sm px-5 py-[10px] transition-[border-color,color] duration-200 hover:border-text-dim hover:text-text"
+          onClick={onCancel}
+        >
           Cancel
         </button>
-        <button type="submit" className="submit-button" disabled={submitting || !title.trim()}>
+        <button
+          type="submit"
+          disabled={submitting || !title.trim()}
+          className="bg-[linear-gradient(135deg,#667eea,#764ba2)] border-none rounded-lg text-white cursor-pointer text-sm font-semibold px-6 py-[10px] transition-opacity duration-200 enabled:hover:opacity-90 disabled:cursor-not-allowed disabled:opacity-50"
+        >
           {submitting ? 'Saving...' : isEditing ? 'Update' : 'Save Idea'}
         </button>
       </div>

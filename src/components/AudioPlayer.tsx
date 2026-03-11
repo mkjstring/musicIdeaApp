@@ -1,6 +1,5 @@
 import { useRef, useEffect, useState, useCallback } from 'react'
 import WaveSurfer from 'wavesurfer.js'
-import './AudioPlayer.css'
 
 interface AudioPlayerProps {
   url: string
@@ -65,12 +64,16 @@ export function AudioPlayer({ url, title, onReady }: AudioPlayerProps) {
   }
 
   return (
-    <div className="audio-player">
-      {title && <div className="audio-player-title">{title}</div>}
-      
-      <div className="audio-player-controls">
+    <div className="bg-bg-input rounded-xl p-4 w-full">
+      {title && (
+        <div className="text-text text-sm font-medium mb-3 overflow-hidden text-ellipsis whitespace-nowrap">
+          {title}
+        </div>
+      )}
+
+      <div className="flex items-center gap-3">
         <button
-          className="play-button"
+          className="bg-accent border-none rounded-full text-white cursor-pointer flex items-center justify-center h-11 w-11 shrink-0 transition-[background,transform] duration-200 hover:enabled:bg-accent-dim hover:enabled:scale-105 disabled:bg-muted disabled:cursor-not-allowed"
           onClick={togglePlayPause}
           disabled={isLoading}
           aria-label={isPlaying ? 'Pause' : 'Play'}
@@ -84,9 +87,9 @@ export function AudioPlayer({ url, title, onReady }: AudioPlayerProps) {
           )}
         </button>
 
-        <div className="waveform-container" ref={containerRef} />
+        <div className="flex-1 min-w-0" ref={containerRef} />
 
-        <div className="time-display">
+        <div className="text-text-soft text-xs font-mono shrink-0 min-w-[85px] text-right">
           {formatTime(currentTime)} / {formatTime(duration)}
         </div>
       </div>

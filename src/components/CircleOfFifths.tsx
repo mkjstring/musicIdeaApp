@@ -2,7 +2,6 @@ import { useState, useEffect } from 'react'
 import { Fretboard } from './Fretboard'
 import { ChordsPanel } from './ChordsPanel'
 import { ProgressionLab, type ProgressionBar } from './ProgressionLab'
-import './CircleOfFifths.css'
 
 const CX = 250, CY = 250
 const R_OUTER_MAJOR = 230, R_INNER_MAJOR = 160
@@ -210,12 +209,12 @@ export function CircleOfFifths() {
   const useFlats = selectedKey.flats > 0
 
   return (
-    <div className="circle-of-fifths">
-      <div className="cof-top-row">
-      <div className="cof-svg-wrapper">
+    <div className="flex flex-col items-stretch gap-8 max-w-[960px] w-full">
+      <div className="flex flex-col items-center gap-10 w-full min-[800px]:flex-row min-[800px]:items-start min-[800px]:justify-between">
+      <div className="w-full max-w-[500px] shrink-0 min-[800px]:w-[min(460px,50%)] min-[800px]:flex-none">
         <svg
           viewBox="0 0 500 500"
-          className="cof-svg"
+          className="cof-svg w-full h-auto block"
           aria-label="Circle of fifths — click a key to select it"
           role="img"
           style={isProgressionPlaying && activeTab === 'progression' ? { opacity: 0.5, pointerEvents: 'none' } : undefined}
@@ -340,24 +339,24 @@ export function CircleOfFifths() {
         </svg>
       </div>
 
-      <div className={`cof-info-panel${isMajor ? '' : ' cof-info-panel--minor'}`}>
-        <div className="info-panel-header">
+      <div className={`bg-bg-card border border-transparent rounded-2xl p-7 w-full max-w-[500px] transition-[border-color] duration-300 max-[480px]:p-5 max-[480px]:px-4 min-[800px]:flex-none min-[800px]:w-[min(380px,45%)] min-[800px]:max-w-[380px] min-[800px]:mr-[18px]${isMajor ? '' : ' cof-info-panel--minor'}`}>
+        <div className="flex justify-between items-start gap-3 mb-7">
           <div>
-            <h2 className="info-key-name">{keyDisplayName}</h2>
-            <p className="info-key-sig">{keySigLabel}</p>
+            <h2 className="text-text text-[26px] font-bold m-0 mb-1">{keyDisplayName}</h2>
+            <p className="text-text-dim text-sm m-0">{keySigLabel}</p>
           </div>
-          <div className="key-sig-badge">
+          <div className="shrink-0">
             {selectedKey.sharps === 0 && selectedKey.flats === 0 ? (
-              <div className="key-sig-natural">♮</div>
+              <div className="text-muted text-[22px] font-light leading-none pt-1">♮</div>
             ) : (
-              <div className="key-sig-accidentals">
+              <div className="flex gap-[5px] flex-wrap justify-end max-w-[120px]">
                 {(selectedKey.sharps > 0
                   ? SHARPS_ORDER.slice(0, selectedKey.sharps)
                   : FLATS_ORDER.slice(0, selectedKey.flats)
                 ).map(note => (
-                  <div key={note} className="key-sig-accidental">
-                    <span className="key-sig-sym">{selectedKey.sharps > 0 ? '♯' : '♭'}</span>
-                    <span className="key-sig-note">{note}</span>
+                  <div key={note} className="flex flex-col items-center gap-px">
+                    <span className="key-sig-sym text-accent text-[13px] font-bold leading-none">{selectedKey.sharps > 0 ? '♯' : '♭'}</span>
+                    <span className="text-muted text-[9px] font-semibold tracking-[0.02em]">{note}</span>
                   </div>
                 ))}
               </div>
@@ -365,18 +364,18 @@ export function CircleOfFifths() {
           </div>
         </div>
 
-        <div className="info-section">
-          <h3>Scale Notes</h3>
-          <div className="info-notes">
+        <div className="mb-6 last:mb-0">
+          <h3 className="text-text-soft text-[11px] font-semibold tracking-[0.08em] uppercase m-0 mb-[10px]">Scale Notes</h3>
+          <div className="grid grid-cols-7 gap-1.5">
             {scaleNotes.map((note, i) => (
-              <span key={i} className="info-note-badge">{note}</span>
+              <span key={i} className="info-note-badge bg-[rgba(102,126,234,0.15)] border border-[rgba(102,126,234,0.3)] rounded-md text-accent-soft text-[13px] font-semibold py-1.5 px-1 text-center">{note}</span>
             ))}
           </div>
         </div>
 
-        <div className="info-section">
-          <h3>Diatonic Chords</h3>
-          <div className={`info-chords${activeTab === 'progression' && primedBar !== null ? ' info-chords--selecting' : ''}`}>
+        <div className="mb-6 last:mb-0">
+          <h3 className="text-text-soft text-[11px] font-semibold tracking-[0.08em] uppercase m-0 mb-[10px]">Diatonic Chords</h3>
+          <div className={`info-chords grid grid-cols-7 gap-1.5 transition-[outline] duration-150 max-[480px]:grid-cols-4${activeTab === 'progression' && primedBar !== null ? ' info-chords--selecting' : ''}`}>
             {chords.map(chord => (
               <div
                 key={chord.numeral}
@@ -408,10 +407,10 @@ export function CircleOfFifths() {
           </div>
         </div>
 
-        <div className="info-section">
-          <h3>{isMajor ? 'Relative Minor' : 'Relative Major'}</h3>
+        <div className="mb-6 last:mb-0">
+          <h3 className="text-text-soft text-[11px] font-semibold tracking-[0.08em] uppercase m-0 mb-[10px]">{isMajor ? 'Relative Minor' : 'Relative Major'}</h3>
           <button
-            className="info-relative-link"
+            className="info-relative-link bg-[rgba(102,126,234,0.12)] border border-[rgba(102,126,234,0.3)] rounded-lg text-accent-soft text-lg font-semibold py-2 px-4 cursor-pointer transition-[background,border-color,color] duration-200 hover:bg-[rgba(102,126,234,0.25)] hover:border-[rgba(102,126,234,0.55)] hover:text-[#c7d2fe]"
             disabled={isProgressionPlaying && activeTab === 'progression'}
             onClick={() => isMajor ? handleMinorClick(selectedIndex) : handleMajorClick(selectedIndex)}
           >
@@ -421,45 +420,48 @@ export function CircleOfFifths() {
       </div>
       </div>{/* end cof-top-row */}
 
-      <div className="lab-tabs-wrapper">
-        <div className="lab-tab-bar">
+      <div className="w-full bg-bg-deep rounded-2xl border border-border-dim overflow-hidden">
+        <div className="flex gap-1 border-b border-border-dim">
           <button
-            className={`lab-tab${activeTab === 'fretboard' ? ' active' : ''}`}
+            className={`bg-transparent border-0 border-b-2 border-b-transparent text-text-dim cursor-pointer text-sm font-medium px-5 py-2.5 -mb-px transition-[color,border-color] duration-200 hover:text-text-soft${activeTab === 'fretboard' ? ' !text-accent !border-b-accent' : ''}`}
             onClick={() => setActiveTab('fretboard')}
           >
             Fretboard
           </button>
           <button
-            className={`lab-tab${activeTab === 'chords' ? ' active' : ''}`}
-            onClick={() => setActiveTab('chords')}
+            className={`bg-transparent border-0 border-b-2 border-b-transparent text-text-dim cursor-pointer text-sm font-medium px-5 py-2.5 -mb-px transition-[color,border-color] duration-200 hover:text-text-soft${activeTab === 'chords' ? ' !text-accent !border-b-accent' : ''}`}
+            onClick={() => {
+              setActiveTab('chords')
+              if (selectedDegree === 'scale') setSelectedDegree(chords[0].numeral)
+            }}
           >
             Chords
           </button>
           <button
-            className={`lab-tab${activeTab === 'progression' ? ' active' : ''}`}
+            className={`bg-transparent border-0 border-b-2 border-b-transparent text-text-dim cursor-pointer text-sm font-medium px-5 py-2.5 -mb-px transition-[color,border-color] duration-200 hover:text-text-soft${activeTab === 'progression' ? ' !text-accent !border-b-accent' : ''}`}
             onClick={() => setActiveTab('progression')}
           >
             Progression
           </button>
           {isProgressionPlaying && activeTab !== 'progression' && (
-            <div className={`progression-mini-transport${stopRequest ? ' progression-mini-transport--stopping' : ''}`}>
-              <span className="progression-mini-label">● Playing</span>
-              <div className="progression-mini-bars">
+            <div className={`progression-mini-transport flex items-center gap-2 ml-auto py-1 px-3 pl-3 bg-[rgba(102,126,234,0.08)] border border-[rgba(102,126,234,0.2)] rounded-lg${stopRequest ? ' progression-mini-transport--stopping' : ''}`}>
+              <span className="text-accent text-xs font-semibold tracking-[0.04em]">● Playing</span>
+              <div className="flex gap-1">
                 {progressionBars.map((bar, i) => {
                   const chord = bar.degree ? chords.find(c => c.numeral === bar.degree) : null
                   return (
                     <div
                       key={i}
-                      className={`progression-mini-bar${activeProgressionBar === i ? ' progression-mini-bar--active' : ''}`}
+                      className={`flex flex-col items-center gap-px bg-[rgba(255,255,255,0.04)] border border-[rgba(255,255,255,0.08)] rounded-[5px] py-[3px] px-[7px] min-w-[36px] transition-[background,border-color] duration-150${activeProgressionBar === i ? ' !bg-[rgba(102,126,234,0.2)] !border-[rgba(102,126,234,0.5)]' : ''}`}
                     >
-                      <span className="progression-mini-bar-numeral">{chord ? chord.numeral : '—'}</span>
-                      {chord && <span className="progression-mini-bar-note">{chord.note}</span>}
+                      <span className={`text-accent text-[11px] font-bold${activeProgressionBar === i ? ' !text-accent-soft' : ''}`}>{chord ? chord.numeral : '—'}</span>
+                      {chord && <span className={`text-text-soft text-[11px] font-medium${activeProgressionBar === i ? ' !text-text' : ''}`}>{chord.note}</span>}
                     </div>
                   )
                 })}
               </div>
               <button
-                className="progression-mini-stop"
+                className="bg-[rgba(239,68,68,0.1)] border border-[rgba(239,68,68,0.3)] rounded-md text-[#fca5a5] cursor-pointer text-[11px] font-semibold py-1 px-3 transition-[background,border-color] duration-150 hover:bg-[rgba(239,68,68,0.2)] hover:border-[rgba(239,68,68,0.55)] active:scale-[0.92] active:bg-[rgba(239,68,68,0.35)]"
                 onClick={() => setStopRequest(true)}
               >
                 ■ Stop

@@ -1,7 +1,6 @@
 import { useCallback, useState, useRef } from 'react'
 import { uploadAudioFile } from '../lib/supabase'
 import { useAuth } from '../contexts/AuthContext'
-import './FileUpload.css'
 
 interface FileUploadProps {
   onUploadComplete: (filePath: string, fileName: string) => void
@@ -109,7 +108,13 @@ export function FileUpload({ onUploadComplete, onError }: FileUploadProps) {
 
   return (
     <div
-      className={`file-upload ${isDragging ? 'dragging' : ''} ${isUploading ? 'uploading' : ''}`}
+      className={[
+        'bg-bg-input border-2 border-dashed rounded-xl cursor-pointer flex flex-col items-center justify-center py-10 px-5 text-center transition-[border-color,background] duration-200',
+        isDragging
+          ? 'bg-accent/10 border-accent'
+          : 'border-muted hover:border-accent',
+        isUploading ? 'cursor-default pointer-events-none' : '',
+      ].join(' ')}
       onDrop={handleDrop}
       onDragOver={handleDragOver}
       onDragLeave={handleDragLeave}
@@ -120,23 +125,28 @@ export function FileUpload({ onUploadComplete, onError }: FileUploadProps) {
         type="file"
         accept="audio/*"
         onChange={handleFileSelect}
-        className="file-input"
+        className="hidden"
       />
 
       {isUploading ? (
-        <div className="upload-progress">
-          <div className="progress-bar">
-            <div className="progress-fill" style={{ width: `${uploadProgress}%` }} />
+        <div className="w-full max-w-[300px]">
+          <div className="bg-border-dim rounded h-2 overflow-hidden w-full">
+            <div
+              className="upload-progress-fill h-full transition-[width] duration-200"
+              style={{ width: `${uploadProgress}%` }}
+            />
           </div>
-          <span className="progress-text">Uploading... {uploadProgress}%</span>
+          <span className="text-text-soft block text-sm mt-3">
+            Uploading... {uploadProgress}%
+          </span>
         </div>
       ) : (
         <>
           <UploadIcon />
-          <p className="upload-text">
+          <p className="text-text text-base m-0 mb-2">
             Drag & drop an audio file here, or click to browse
           </p>
-          <p className="upload-hint">MP3, WAV, AAC, OGG • Max 50MB</p>
+          <p className="text-text-dim text-sm m-0">MP3, WAV, AAC, OGG • Max 50MB</p>
         </>
       )}
     </div>
@@ -145,7 +155,13 @@ export function FileUpload({ onUploadComplete, onError }: FileUploadProps) {
 
 function UploadIcon() {
   return (
-    <svg className="upload-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+    <svg
+      className="text-accent h-12 w-12 mb-4"
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="2"
+    >
       <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" />
       <polyline points="17 8 12 3 7 8" />
       <line x1="12" y1="3" x2="12" y2="15" />
