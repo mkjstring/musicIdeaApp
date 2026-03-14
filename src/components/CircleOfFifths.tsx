@@ -457,9 +457,11 @@ export function CircleOfFifths() {
           >
             Progression
           </button>
-          {isProgressionPlaying && activeTab !== 'progression' && (
+          {progressionBars.some(b => b.degree !== null) && activeTab !== 'progression' && (
             <div className={`progression-mini-transport flex items-center gap-2 ml-auto py-1 px-3 pl-3 bg-[rgba(102,126,234,0.08)] border border-[rgba(102,126,234,0.2)] rounded-lg${stopRequest ? ' progression-mini-transport--stopping' : ''}`}>
-              <span className="text-accent text-xs font-semibold tracking-[0.04em]">● Playing</span>
+              {isProgressionPlaying && (
+                <span className="text-accent text-xs font-semibold tracking-[0.04em]">● Playing</span>
+              )}
               <div className="flex gap-1">
                 {progressionBars.map((bar, i) => {
                   const chord = bar.degree ? chords.find(c => c.numeral === bar.degree) : null
@@ -474,12 +476,14 @@ export function CircleOfFifths() {
                   )
                 })}
               </div>
-              <button
-                className="bg-[rgba(239,68,68,0.1)] border border-[rgba(239,68,68,0.3)] rounded-md text-[#fca5a5] cursor-pointer text-[11px] font-semibold py-1 px-3 transition-[background,border-color] duration-150 hover:bg-[rgba(239,68,68,0.2)] hover:border-[rgba(239,68,68,0.55)] active:scale-[0.92] active:bg-[rgba(239,68,68,0.35)]"
-                onClick={() => setStopRequest(true)}
-              >
-                ■ Stop
-              </button>
+              {isProgressionPlaying && (
+                <button
+                  className="bg-[rgba(239,68,68,0.1)] border border-[rgba(239,68,68,0.3)] rounded-md text-[#fca5a5] cursor-pointer text-[11px] font-semibold py-1 px-3 transition-[background,border-color] duration-150 hover:bg-[rgba(239,68,68,0.2)] hover:border-[rgba(239,68,68,0.55)] active:scale-[0.92] active:bg-[rgba(239,68,68,0.35)]"
+                  onClick={() => setStopRequest(true)}
+                >
+                  ■ Stop
+                </button>
+              )}
             </div>
           )}
         </div>
