@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react'
-import { Fretboard } from './Fretboard'
+import { FretboardV2 } from './FretboardV2'
 import { ChordsPanel } from './ChordsPanel'
 import { ProgressionLab, type ProgressionBar } from './ProgressionLab'
 
@@ -44,6 +44,17 @@ const MAJOR_DEGREE_LABELS = ['I', 'V', 'II', 'VI', 'III', 'VII', '♭V', '♭II'
 const MINOR_DEGREE_LABELS = ['i', 'v', 'ii', 'vi', 'iii', 'vii', '♭v', '♭ii', '♭vi', '♭iii', '♭vii', 'iv']
 
 type Mode = 'major' | 'minor'
+
+function findMatchingDegree(
+  currentDegree: string,
+  currentChords: { numeral: string }[],
+  newChords: { numeral: string }[]
+): string {
+  if (currentDegree === 'scale' || currentDegree === 'pentatonic') return currentDegree
+  const idx = currentChords.findIndex(c => c.numeral === currentDegree)
+  if (idx === -1) return 'scale'
+  return newChords[idx]?.numeral ?? 'scale'
+}
 
 function toRad(deg: number) { return (deg * Math.PI) / 180 }
 
@@ -133,6 +144,7 @@ export function CircleOfFifths() {
   const [selectedIndex, setSelectedIndex] = useState(0)
   const [selectedMode, setSelectedMode] = useState<Mode>('major')
   const [selectedDegree, setSelectedDegree] = useState('scale')
+  const [activeFretboardDegrees, setActiveFretboardDegrees] = useState<Set<number>>(new Set([1, 2, 3, 4, 5, 6, 7]))
   const [activeTab, setActiveTab] = useState<'fretboard' | 'chords' | 'progression'>('fretboard')
   const [primedBar, setPrimedBar] = useState<number | null>(null)
   const [progressionBars, setProgressionBars] = useState<ProgressionBar[]>(
@@ -172,17 +184,19 @@ export function CircleOfFifths() {
 
   function handleMajorClick(index: number) {
     if (isProgressionPlaying && activeTab === 'progression') return
+    const newChords = getMajorChords(index)
+    setSelectedDegree(prev => findMatchingDegree(prev, chords, newChords))
     setSelectedIndex(index)
     setSelectedMode('major')
-    setSelectedDegree('scale')
     rotate(index)
   }
 
   function handleMinorClick(index: number) {
     if (isProgressionPlaying && activeTab === 'progression') return
+    const newChords = getMinorChords(index)
+    setSelectedDegree(prev => findMatchingDegree(prev, chords, newChords))
     setSelectedIndex(index)
     setSelectedMode('minor')
-    setSelectedDegree('scale')
     rotate(index)
   }
 
@@ -470,7 +484,7 @@ export function CircleOfFifths() {
           )}
         </div>
         {activeTab === 'fretboard' && (
-          <Fretboard
+          <FretboardV2
             tonicSemitone={tonicSemitone}
             scaleSemitones={scaleSemitones}
             chords={chords}
@@ -478,6 +492,8 @@ export function CircleOfFifths() {
             mode={selectedMode}
             selectedDegree={selectedDegree}
             onDegreeChange={setSelectedDegree}
+            activeDegrees={activeFretboardDegrees}
+            onActiveDegreesChange={setActiveFretboardDegrees}
           />
         )}
         {activeTab === 'chords' && (
