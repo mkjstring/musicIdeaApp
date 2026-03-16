@@ -470,7 +470,7 @@ export function CircleOfFifths() {
                       key={i}
                       className={`flex flex-col items-center gap-px bg-[rgba(255,255,255,0.04)] border border-[rgba(255,255,255,0.08)] rounded-[5px] py-[3px] px-[7px] min-w-[36px] transition-[background,border-color] duration-150${activeProgressionBar === i ? ' !bg-[rgba(102,126,234,0.2)] !border-[rgba(102,126,234,0.5)]' : ''}`}
                     >
-                      <span className={`text-accent text-[11px] font-bold${activeProgressionBar === i ? ' !text-accent-soft' : ''}`}>{chord ? chord.numeral : '—'}</span>
+                      <span className={`text-accent text-[11px] font-bold${activeProgressionBar === i ? ' !text-accent-soft' : ''}`}>{chord ? `${bar.rootOffset === -1 ? '♭' : bar.rootOffset === 1 ? '♯' : ''}${chord.numeral}` : '—'}</span>
                       {chord && <span className={`text-text-soft text-[11px] font-medium${activeProgressionBar === i ? ' !text-text' : ''}`}>{chord.note}</span>}
                     </div>
                   )

@@ -7,9 +7,13 @@ import { CustomSelect } from './CustomSelect'
 import { pitchClassesToMidi } from '../utils/midiUtils'
 import { playChord, stopAll, setBpm as engineSetBpm, setTimeSignature as engineSetTimeSig, scheduleMetronome } from '../utils/audioEngine'
 
+export type ChordQuality = 'major' | 'minor' | 'dominant' | 'augmented' | 'diminished' | 'half-dim' | 'min-maj'
+
 export interface ProgressionBar {
   degree: string | null
   chordType?: ChordType
+  rootOffset?: number       // -1 = ♭, +1 = ♯, undefined = natural
+  qualityOverride?: ChordQuality
 }
 
 interface ProgressionLabProps {
@@ -46,24 +50,106 @@ const CHORD_TYPES: { value: ChordType; label: string; sup: string }[] = [
   { value: '9th',   label: '9',     sup: '⁹' },
 ]
 
-const COMMON_PROGRESSIONS_MAJOR = [
-  { name: 'I–V–vi–IV',     numerals: ['I', 'V', 'vi', 'IV'] },
-  { name: 'I–IV–V–I',      numerals: ['I', 'IV', 'V', 'I'] },
-  { name: 'I–vi–IV–V',     numerals: ['I', 'vi', 'IV', 'V'] },
-  { name: 'ii–V–I',        numerals: ['ii', 'V', 'I'] },
-  { name: 'I–iii–IV–V',    numerals: ['I', 'iii', 'IV', 'V'] },
-  { name: 'I–V–vi–iii–IV', numerals: ['I', 'V', 'vi', 'iii', 'IV'] },
-  { name: 'vi–IV–I–V',     numerals: ['vi', 'IV', 'I', 'V'] },
-  { name: 'I–IV–vii°–iii', numerals: ['I', 'IV', 'vii°', 'iii'] },
+const QUALITY_OPTIONS: { value: ChordQuality | 'auto'; label: string }[] = [
+  { value: 'auto',       label: 'auto' },
+  { value: 'major',      label: 'maj' },
+  { value: 'minor',      label: 'min' },
+  { value: 'dominant',   label: 'dom' },
+  { value: 'augmented',  label: 'aug' },
+  { value: 'diminished', label: 'dim' },
+  { value: 'half-dim',   label: 'ø' },
+  { value: 'min-maj',    label: 'm△' },
 ]
 
-const COMMON_PROGRESSIONS_MINOR = [
-  { name: 'i–VII–VI–VII', numerals: ['i', 'VII', 'VI', 'VII'] },
-  { name: 'i–iv–v–i',     numerals: ['i', 'iv', 'v', 'i'] },
-  { name: 'i–VI–III–VII', numerals: ['i', 'VI', 'III', 'VII'] },
-  { name: 'i–VII–VI–v',   numerals: ['i', 'VII', 'VI', 'v'] },
-  { name: 'i–iv–VII–III', numerals: ['i', 'iv', 'VII', 'III'] },
-  { name: 'ii°–v–i',      numerals: ['ii°', 'v', 'i'] },
+// Fixed intervals per quality (relative to root, 0-based semitones)
+const QUALITY_INTERVALS: Record<ChordQuality, number[]> = {
+  major:      [0, 4, 7],
+  minor:      [0, 3, 7],
+  dominant:   [0, 4, 7],
+  augmented:  [0, 4, 8],
+  diminished: [0, 3, 6],
+  'half-dim': [0, 3, 6, 10],
+  'min-maj':  [0, 3, 7, 11],
+}
+
+// 7th to add for each quality when chordType is '7th'/'9th' and base is a triad
+const QUALITY_SEVENTH: Record<ChordQuality, number> = {
+  major: 11, minor: 10, dominant: 10, augmented: 11, diminished: 9, 'half-dim': 10, 'min-maj': 11,
+}
+
+function buildOverrideTones(rootSt: number, quality: ChordQuality, chordType: ChordType): number[] {
+  const triad = QUALITY_INTERVALS[quality].slice(0, 3)
+
+  let intervals: number[]
+  if (chordType === 'triad') {
+    intervals = triad
+  } else if (chordType === '6th') {
+    intervals = [...triad, 9]
+  } else if (chordType === '7th') {
+    intervals = [...triad, QUALITY_SEVENTH[quality]]
+  } else { // '9th'
+    intervals = [...triad, QUALITY_SEVENTH[quality], 2]
+  }
+  return intervals.map(i => (rootSt + i) % 12)
+}
+
+interface PresetBar {
+  degree: string
+  qualityOverride?: ChordQuality
+  rootOffset?: number
+}
+interface Preset { name: string; bars: PresetBar[]; defaultChordType?: ChordType }
+
+const COMMON_PROGRESSIONS_MAJOR: Preset[] = [
+  { name: 'I–V–vi–IV',     bars: [{ degree: 'I' }, { degree: 'V' }, { degree: 'vi' }, { degree: 'IV' }] },
+  { name: 'I–IV–V–I',      bars: [{ degree: 'I' }, { degree: 'IV' }, { degree: 'V' }, { degree: 'I' }] },
+  { name: 'I–vi–IV–V',     bars: [{ degree: 'I' }, { degree: 'vi' }, { degree: 'IV' }, { degree: 'V' }] },
+  { name: 'ii–V–I',        bars: [{ degree: 'ii' }, { degree: 'V' }, { degree: 'I' }] },
+  { name: 'I–iii–IV–V',    bars: [{ degree: 'I' }, { degree: 'iii' }, { degree: 'IV' }, { degree: 'V' }] },
+  { name: 'I–V–vi–iii–IV', bars: [{ degree: 'I' }, { degree: 'V' }, { degree: 'vi' }, { degree: 'iii' }, { degree: 'IV' }] },
+  { name: 'vi–IV–I–V',     bars: [{ degree: 'vi' }, { degree: 'IV' }, { degree: 'I' }, { degree: 'V' }] },
+  { name: 'I–IV–vii°–iii', bars: [{ degree: 'I' }, { degree: 'IV' }, { degree: 'vii°' }, { degree: 'iii' }] },
+  { name: 'I–I–I–I–IV–IV–I–I–V–IV–I–V', defaultChordType: '7th', bars: [
+    { degree: 'I',  qualityOverride: 'dominant' }, { degree: 'I',  qualityOverride: 'dominant' },
+    { degree: 'I',  qualityOverride: 'dominant' }, { degree: 'I',  qualityOverride: 'dominant' },
+    { degree: 'IV', qualityOverride: 'dominant' }, { degree: 'IV', qualityOverride: 'dominant' },
+    { degree: 'I',  qualityOverride: 'dominant' }, { degree: 'I',  qualityOverride: 'dominant' },
+    { degree: 'V',  qualityOverride: 'dominant' }, { degree: 'IV', qualityOverride: 'dominant' },
+    { degree: 'I',  qualityOverride: 'dominant' }, { degree: 'V',  qualityOverride: 'dominant' },
+  ]},
+]
+
+const COMMON_PROGRESSIONS_MINOR: Preset[] = [
+  { name: 'i–VII–VI–VII', bars: [{ degree: 'i' }, { degree: 'VII' }, { degree: 'VI' }, { degree: 'VII' }] },
+  { name: 'i–iv–v–i',     bars: [{ degree: 'i' }, { degree: 'iv' }, { degree: 'v' }, { degree: 'i' }] },
+  { name: 'i–VI–III–VII', bars: [{ degree: 'i' }, { degree: 'VI' }, { degree: 'III' }, { degree: 'VII' }] },
+  { name: 'i–VII–VI–v',   bars: [{ degree: 'i' }, { degree: 'VII' }, { degree: 'VI' }, { degree: 'v' }] },
+  { name: 'i–iv–VII–III', bars: [{ degree: 'i' }, { degree: 'iv' }, { degree: 'VII' }, { degree: 'III' }] },
+  { name: 'ii°–v–i',      bars: [{ degree: 'ii°' }, { degree: 'v' }, { degree: 'i' }] },
+]
+
+const COMMON_PROGRESSIONS_JPOP: Preset[] = [
+  { name: 'IV–V–iii–vi', defaultChordType: '7th', bars: [
+    { degree: 'IV' }, { degree: 'V' }, { degree: 'iii' }, { degree: 'vi' },
+  ]},
+  { name: 'IV–III–vi–I', defaultChordType: '7th', bars: [
+    { degree: 'IV' }, { degree: 'iii', qualityOverride: 'major' }, { degree: 'vi' }, { degree: 'I' },
+  ]},
+  { name: 'IV–V–vi', defaultChordType: '7th', bars: [
+    { degree: 'IV' }, { degree: 'V' }, { degree: 'vi' },
+  ]},
+  { name: '♭VI–♭VII–I', defaultChordType: '7th', bars: [
+    { degree: 'vi', rootOffset: -1, qualityOverride: 'major' },
+    { degree: 'vii°', rootOffset: -1, qualityOverride: 'major' },
+    { degree: 'I' },
+  ]},
+  { name: 'IV–V–iii–vi–ii–V–I', defaultChordType: '7th', bars: [
+    { degree: 'IV' }, { degree: 'V' }, { degree: 'iii' },
+    { degree: 'vi' }, { degree: 'ii' }, { degree: 'V' }, { degree: 'I' },
+  ]},
+  { name: 'IV–V–I–vi', defaultChordType: '7th', bars: [
+    { degree: 'IV' }, { degree: 'V' }, { degree: 'I' }, { degree: 'vi' },
+  ]},
 ]
 
 export function ProgressionLab({
@@ -140,8 +226,24 @@ export function ProgressionLab({
     onBarsChange(bars.map((b, i) => i === primedBar ? { ...b, chordType: type } : b))
   }
 
-  function handleLoadPreset(numerals: string[]) {
-    const newBars: ProgressionBar[] = numerals.map(n => ({ degree: n, chordType: 'triad' }))
+  function handleRootOffsetChange(offset: number | undefined) {
+    if (primedBar === null) return
+    onBarsChange(bars.map((b, i) => i === primedBar ? { ...b, rootOffset: offset } : b))
+  }
+
+  function handleQualityOverrideChange(quality: ChordQuality | 'auto') {
+    if (primedBar === null) return
+    const override = quality === 'auto' ? undefined : quality
+    onBarsChange(bars.map((b, i) => i === primedBar ? { ...b, qualityOverride: override } : b))
+  }
+
+  function handleLoadPreset(preset: Preset) {
+    const newBars: ProgressionBar[] = preset.bars.map(pb => ({
+      degree: pb.degree,
+      chordType: preset.defaultChordType ?? 'triad',
+      rootOffset: pb.rootOffset,
+      qualityOverride: pb.qualityOverride,
+    }))
     onBarCountChange(newBars.length)
     onBarsChange(newBars)
     onPrimedBarChange(null)
@@ -179,8 +281,11 @@ export function ProgressionLab({
         if (bar.degree) {
           const chord = chords.find(c => c.numeral === bar.degree)
           if (chord) {
-            const rootSt = noteToSemitone(chord.note)
-            const tones = getDiatonicChordTones(rootSt, scaleSemitones, bar.chordType ?? 'triad')
+            const baseRootSt = noteToSemitone(chord.note)
+            const rootSt = ((baseRootSt + (bar.rootOffset ?? 0)) + 12) % 12
+            const tones = bar.qualityOverride
+              ? buildOverrideTones(rootSt, bar.qualityOverride, bar.chordType ?? 'triad')
+              : getDiatonicChordTones(rootSt, scaleSemitones, bar.chordType ?? 'triad')
             const midiNotes = pitchClassesToMidi(tones, rootSt)
             playChord(midiNotes, barDuration * 0.88, time)
           }
@@ -201,8 +306,17 @@ export function ProgressionLab({
     onPlayingChange(false)
   }
 
-  const progressions = mode === 'major' ? COMMON_PROGRESSIONS_MAJOR : COMMON_PROGRESSIONS_MINOR
+  const [presetTab, setPresetTab] = useState<'common' | 'jpop'>('common')
+
+  const diatonicProgressions = mode === 'major' ? COMMON_PROGRESSIONS_MAJOR : COMMON_PROGRESSIONS_MINOR
+
   const primedBarChordType = primedBar !== null ? (bars[primedBar]?.chordType ?? 'triad') : 'triad'
+  const primedRootOffset = primedBar !== null ? (bars[primedBar]?.rootOffset ?? 0) : 0
+  const primedQuality: ChordQuality | 'auto' = primedBar !== null ? (bars[primedBar]?.qualityOverride ?? 'auto') : 'auto'
+
+  const attrBtnBase = 'rounded-md text-[12px] font-semibold px-3 py-1 border cursor-pointer transition-[background,border-color,color] duration-150'
+  const attrBtnActive = 'bg-[rgba(102,126,234,0.22)] border-[rgba(102,126,234,0.6)] text-accent-soft'
+  const attrBtnInactive = 'bg-bg-input border-border-dim text-text-dim hover:bg-bg-raised hover:border-border hover:text-text-soft'
 
   return (
     <div className="p-6 flex flex-col gap-6">
@@ -269,12 +383,46 @@ export function ProgressionLab({
         </button>
       </div>
 
+      {/* Preset progressions — subtabbed */}
+      {!isPlaying && (
+        <div className="flex flex-col gap-3 pt-2 border-t border-border-dim">
+          <div className="flex gap-1">
+            {(['common', 'jpop'] as const).map(tab => (
+              <button
+                key={tab}
+                onClick={() => setPresetTab(tab)}
+                className={`text-[11px] font-semibold px-3 py-1 rounded-md border cursor-pointer transition-[background,border-color,color] duration-150 ${
+                  presetTab === tab
+                    ? 'bg-[rgba(102,126,234,0.18)] border-[rgba(102,126,234,0.45)] text-accent-soft'
+                    : 'bg-transparent border-transparent text-text-dim hover:text-text-soft hover:bg-bg-raised'
+                }`}
+              >
+                {tab === 'common' ? 'Common Progressions' : 'J-Pop / Anime'}
+              </button>
+            ))}
+          </div>
+          <div className="flex flex-wrap gap-2">
+            {(presetTab === 'common' ? diatonicProgressions : COMMON_PROGRESSIONS_JPOP).map(preset => (
+              <button
+                key={preset.name}
+                onClick={() => handleLoadPreset(preset)}
+                className="bg-bg-input border border-border-dim rounded-lg text-text-soft text-[12px] font-medium px-3 py-1.5 cursor-pointer transition-[background,border-color,color] duration-150 hover:bg-bg-raised hover:border-[rgba(102,126,234,0.35)] hover:text-accent-soft"
+              >
+                {preset.name}
+              </button>
+            ))}
+          </div>
+        </div>
+      )}
+
       {/* Bar grid */}
       <div className="flex gap-3 flex-wrap">
         {bars.map((bar, i) => {
           const chord = bar.degree ? chords.find(c => c.numeral === bar.degree) : null
           const chordType = bar.chordType ?? 'triad'
           const typeSup = CHORD_TYPES.find(t => t.value === chordType)?.sup ?? ''
+          const rootPrefix = bar.rootOffset === -1 ? '♭' : bar.rootOffset === 1 ? '♯' : ''
+          const qualityLabel = bar.qualityOverride ? QUALITY_OPTIONS.find(q => q.value === bar.qualityOverride)?.label : null
           const isActive = activeBar === i
           const isPrimed = primedBar === i
           const isLocked = primedBar !== null && primedBar !== i
@@ -306,10 +454,13 @@ export function ProgressionLab({
               {chord ? (
                 <>
                   <span className="text-accent text-[13px] font-bold mt-2 leading-none">
-                    {chord.numeral}<sup className="text-[9px] font-bold">{typeSup}</sup>
+                    {rootPrefix}{chord.numeral}<sup className="text-[9px] font-bold">{typeSup}</sup>
                   </span>
                   <span className="text-text text-[15px] font-semibold leading-none">{chord.note}</span>
                   <span className="text-text-dim text-[10px]">{chord.quality}</span>
+                  {qualityLabel && (
+                    <span className="text-muted text-[9px] font-medium leading-none">{qualityLabel}</span>
+                  )}
                 </>
               ) : (
                 <span className="text-border text-[20px] font-light mt-2 leading-[1.2]">{isPrimed ? '?' : '—'}</span>
@@ -322,24 +473,55 @@ export function ProgressionLab({
         )}
       </div>
 
-      {/* Chord type selector — shown when a bar is primed */}
+      {/* Chord attribute panel — shown when a bar is primed */}
       {!isPlaying && primedBar !== null && (
-        <div className="flex items-center gap-3">
-          <span className="text-text-dim text-[10px] font-semibold tracking-[0.08em] uppercase shrink-0">Chord type</span>
-          <div className="flex gap-1.5">
-            {CHORD_TYPES.map(({ value, label }) => (
-              <button
-                key={value}
-                onClick={() => handleChordTypeChange(value)}
-                className={`rounded-md text-[12px] font-semibold px-3 py-1 border cursor-pointer transition-[background,border-color,color] duration-150 ${
-                  primedBarChordType === value
-                    ? 'bg-[rgba(102,126,234,0.22)] border-[rgba(102,126,234,0.6)] text-accent-soft'
-                    : 'bg-bg-input border-border-dim text-text-dim hover:bg-bg-raised hover:border-border hover:text-text-soft'
-                }`}
-              >
-                {label}
-              </button>
-            ))}
+        <div className="flex flex-col gap-3">
+          {/* Root offset row */}
+          <div className="flex items-center gap-3">
+            <span className="text-text-dim text-[10px] font-semibold tracking-[0.08em] uppercase shrink-0 w-[52px]">Root</span>
+            <div className="flex gap-1.5">
+              {([{ value: -1, label: '♭' }, { value: 0, label: '♮' }, { value: 1, label: '♯' }] as const).map(({ value, label }) => (
+                <button
+                  key={value}
+                  onClick={() => handleRootOffsetChange(value === 0 ? undefined : value)}
+                  className={`${attrBtnBase} ${primedRootOffset === value ? attrBtnActive : attrBtnInactive}`}
+                >
+                  {label}
+                </button>
+              ))}
+            </div>
+          </div>
+
+          {/* Quality override row */}
+          <div className="flex items-center gap-3">
+            <span className="text-text-dim text-[10px] font-semibold tracking-[0.08em] uppercase shrink-0 w-[52px]">Quality</span>
+            <div className="flex gap-1.5 flex-wrap">
+              {QUALITY_OPTIONS.map(({ value, label }) => (
+                <button
+                  key={value}
+                  onClick={() => handleQualityOverrideChange(value)}
+                  className={`${attrBtnBase} ${primedQuality === value ? attrBtnActive : attrBtnInactive}`}
+                >
+                  {label}
+                </button>
+              ))}
+            </div>
+          </div>
+
+          {/* Chord type row */}
+          <div className="flex items-center gap-3">
+            <span className="text-text-dim text-[10px] font-semibold tracking-[0.08em] uppercase shrink-0 w-[52px]">Type</span>
+            <div className="flex gap-1.5">
+              {CHORD_TYPES.map(({ value, label }) => (
+                <button
+                  key={value}
+                  onClick={() => handleChordTypeChange(value)}
+                  className={`${attrBtnBase} ${primedBarChordType === value ? attrBtnActive : attrBtnInactive}`}
+                >
+                  {label}
+                </button>
+              ))}
+            </div>
           </div>
         </div>
       )}
@@ -351,24 +533,6 @@ export function ProgressionLab({
           ? 'Select a chord from the info panel above to assign it to this bar.'
           : 'Click a bar to select it, then choose a chord from the panel above. Click again to deselect.'}
       </p>
-
-      {/* Common progressions */}
-      {!isPlaying && (
-        <div className="flex flex-col gap-3 pt-2 border-t border-border-dim">
-          <span className="text-text-dim text-[10px] font-semibold tracking-[0.08em] uppercase">Common Progressions</span>
-          <div className="flex flex-wrap gap-2">
-            {progressions.map(({ name, numerals }) => (
-              <button
-                key={name}
-                onClick={() => handleLoadPreset(numerals)}
-                className="bg-bg-input border border-border-dim rounded-lg text-text-soft text-[12px] font-medium px-3 py-1.5 cursor-pointer transition-[background,border-color,color] duration-150 hover:bg-bg-raised hover:border-[rgba(102,126,234,0.35)] hover:text-accent-soft"
-              >
-                {name}
-              </button>
-            ))}
-          </div>
-        </div>
-      )}
     </div>
   )
 }
